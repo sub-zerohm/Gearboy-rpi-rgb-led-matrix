@@ -82,6 +82,7 @@ void update(void)
         {
             case SDL_QUIT:
             running = false;
+            Log("EXITING!!!");
             break;
 
             case SDL_JOYBUTTONDOWN:
@@ -212,23 +213,27 @@ void update(void)
     for (i = 0; i < GAMEBOY_WIDTH*GAMEBOY_HEIGHT; ++i){
         int x = i % GAMEBOY_WIDTH;
         int y = i / GAMEBOY_WIDTH;
-        
-        GB_Color* pixel = (theFrameBuffer+i);
-        SDL_SetRenderDrawColor(theRenderer, pixel->red, pixel->green, pixel->blue, pixel->alpha);
+        SDL_SetRenderDrawColor(theRenderer, pixel.red, pixel.green, pixel.blue, pixel.alpha);
         SDL_RenderDrawPoint(theRenderer, x, y);
+        
     }
-    SDL_RenderPresent(theRenderer);*/
-    /*
-        for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
+   */
+    
+    for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
     {
         for (int x = 0; x < GAMEBOY_WIDTH; ++x)
         {
             int pixel = (y * GAMEBOY_WIDTH) + x;
-            theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
-            theFrameBuffer[pixel].alpha = 0xFF;
+            GB_Color pixel = theFrameBuffer[pixel];
+            SDL_SetRenderDrawColor(theRenderer, pixel.red, pixel.green, pixel.blue, pixel.alpha);
+            SDL_RenderDrawPoint(theRenderer, x, y);
+            //theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
+            //theFrameBuffer[pixel].alpha = 0xFF;
         }
     }
-    */
+
+    SDL_RenderPresent(theRenderer);
+    
 }
 
 void init_sdl(void)
