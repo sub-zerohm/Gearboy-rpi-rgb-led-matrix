@@ -35,6 +35,7 @@
 
 using namespace std;
 using namespace libconfig;
+using namespace rgb_matrix;
 
 bool running = true;
 bool paused = false;
