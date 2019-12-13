@@ -213,7 +213,8 @@ void update(void)
     for (i = 0; i < GAMEBOY_WIDTH*GAMEBOY_HEIGHT; ++i){
         int x = i % GAMEBOY_WIDTH;
         int y = i / GAMEBOY_WIDTH;
-        SDL_SetRenderDrawColor(theRenderer, pixel.red, pixel.green, pixel.blue, pixel.alpha);
+        GB_Color color = theFrameBuffer[i];
+        SDL_SetRenderDrawColor(theRenderer, color.red, color.green, color.blue, color.alpha);
         SDL_RenderDrawPoint(theRenderer, x, y);
         
     }
@@ -224,8 +225,8 @@ void update(void)
         for (int x = 0; x < GAMEBOY_WIDTH; ++x)
         {
             int pixel = (y * GAMEBOY_WIDTH) + x;
-            GB_Color pixel = theFrameBuffer[pixel];
-            SDL_SetRenderDrawColor(theRenderer, pixel.red, pixel.green, pixel.blue, pixel.alpha);
+            GB_Color color = theFrameBuffer[pixel];
+            SDL_SetRenderDrawColor(theRenderer, color.red, color.green, color.blue, color.alpha);
             SDL_RenderDrawPoint(theRenderer, x, y);
             //theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
             //theFrameBuffer[pixel].alpha = 0xFF;
