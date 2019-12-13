@@ -206,6 +206,7 @@ void update(void)
     //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     //eglSwapBuffers(display, surface);
 
+    Log("Rendering!");
     
     u_int32_t i;
     for (i = 0; i < GAMEBOY_WIDTH*GAMEBOY_HEIGHT; ++i){
