@@ -275,7 +275,7 @@ void init_sdl(void)
     SDL_SetRenderDrawColor(theRenderer, dmg_palette[0].red, dmg_palette[0].green, dmg_palette[0].blue, dmg_palette[0].alpha);
     SDL_RenderClear(theRenderer);
     SDL_SetRenderDrawColor(theRenderer, dmg_palette[2].red, dmg_palette[2].green, dmg_palette[2].blue, dmg_palette[2].alpha);
-    int i;
+    u_int32_t i;
     for (i = 0; i < screen_width; ++i){
         SDL_RenderDrawPoint(theRenderer, i, i);
     }
