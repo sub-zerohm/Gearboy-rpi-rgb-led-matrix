@@ -208,7 +208,7 @@ void update(void)
 
     Log("Rendering!");
     
-    u_int32_t i;
+    /*u_int32_t i;
     for (i = 0; i < GAMEBOY_WIDTH*GAMEBOY_HEIGHT; ++i){
         int x = i % GAMEBOY_WIDTH;
         int y = i / GAMEBOY_WIDTH;
@@ -217,7 +217,18 @@ void update(void)
         SDL_SetRenderDrawColor(theRenderer, pixel->red, pixel->green, pixel->blue, pixel->alpha);
         SDL_RenderDrawPoint(theRenderer, x, y);
     }
-    SDL_RenderPresent(theRenderer);
+    SDL_RenderPresent(theRenderer);*/
+    /*
+        for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
+    {
+        for (int x = 0; x < GAMEBOY_WIDTH; ++x)
+        {
+            int pixel = (y * GAMEBOY_WIDTH) + x;
+            theFrameBuffer[pixel].red = theFrameBuffer[pixel].green = theFrameBuffer[pixel].blue = 0x00;
+            theFrameBuffer[pixel].alpha = 0xFF;
+        }
+    }
+    */
 }
 
 void init_sdl(void)
@@ -506,6 +517,7 @@ int main(int argc, char** argv)
             update();
         }
 
+        Log("Not Running anymore!");
         theGearboyCore->SaveRam();
     }
 
