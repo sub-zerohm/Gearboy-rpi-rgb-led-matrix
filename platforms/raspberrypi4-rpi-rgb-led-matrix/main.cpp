@@ -214,6 +214,8 @@ void init_sdl(void)
         Log("SDL Error Init: %s", SDL_GetError());
     }
 
+    screen_width = 160;
+    screen_height = 144;
 
     SDL_CreateWindowAndRenderer(screen_width, screen_height, 0, &theWindow, &theRenderer);
     //theWindow = SDL_CreateWindow("Gearboy", 0, 0, 0, 0, 0);
