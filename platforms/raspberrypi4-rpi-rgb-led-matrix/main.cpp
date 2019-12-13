@@ -29,10 +29,6 @@
 #include <sys/time.h>
 #include <SDL2/SDL.h>
 #include <libconfig.h++>
-#include "bcm_host.h"
-#include "GLES/gl.h"
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
 #include "gearboy.h"
 #include "../audio-shared/Sound_Queue.h"
 
@@ -42,23 +38,16 @@ using namespace libconfig;
 bool running = true;
 bool paused = false;
 
-EGLDisplay display;
-EGLSurface surface;
-EGLContext context;
-
 static const char *output_file = "gearboy.cfg";
 
 const float kGB_Width = 160.0f;
 const float kGB_Height = 144.0f;
 const float kGB_TexWidth = kGB_Width / 256.0f;
 const float kGB_TexHeight = kGB_Height / 256.0f;
-const GLfloat kQuadTex[8] = { 0, 0, kGB_TexWidth, 0, kGB_TexWidth, kGB_TexHeight, 0, kGB_TexHeight};
-GLshort quadVerts[8];
 
 GearboyCore* theGearboyCore;
 Sound_Queue* theSoundQueue;
 GB_Color* theFrameBuffer;
-GLuint theGBTexture;
 s16 theSampleBufffer[AUDIO_BUFFER_SIZE];
 
 bool audioEnabled = true;
@@ -81,6 +70,7 @@ int jg_a, jg_b, jg_start, jg_select, jg_x_axis, jg_y_axis;
 uint32_t screen_width, screen_height;
 
 SDL_Window* theWindow;
+SDL_Renderer* theRenderer;
 
 void update(void)
 {
@@ -224,7 +214,9 @@ void init_sdl(void)
         Log("SDL Error Init: %s", SDL_GetError());
     }
 
-    theWindow = SDL_CreateWindow("Gearboy", 0, 0, 0, 0, 0);
+
+    SDL_CreateWindowAndRenderer(screen_width, screen_height, 0, &theWindow, &theRenderer);
+    //theWindow = SDL_CreateWindow("Gearboy", 0, 0, 0, 0, 0);
 
     if (theWindow == NULL)
     {
@@ -279,6 +271,13 @@ void init_sdl(void)
     dmg_palette[3].green = 0x1C;
     dmg_palette[3].blue = 0x16;
     dmg_palette[3].alpha = 0xFF;
+
+    SDL_SetRenderDrawColor(theRenderer, dmg_palette[0].red, dmg_palette[0].green, dmg_palette[0].blue, dmg_palette[0].alpha);
+    SDL_RenderClear(theRenderer);
+    SDL_SetRenderDrawColor(theRenderer, dmg_palette[2].red, dmg_palette[2].green, dmg_palette[2].blue, dmg_palette[2].alpha);
+    for (i = 0; i < WINDOW_WIDTH; ++i)
+        SDL_RenderDrawPoint(theRenderer, i, i);
+    SDL_RenderPresent(theRenderer);
 
     Config cfg;
 
@@ -355,139 +354,8 @@ void init_sdl(void)
     }
 }
 
-void init_ogl(void)
-{
-    int32_t success = 0;
-    EGLBoolean result;
-    EGLint num_config;
-
-    static EGL_DISPMANX_WINDOW_T nativewindow;
-
-    DISPMANX_ELEMENT_HANDLE_T dispman_element;
-    DISPMANX_DISPLAY_HANDLE_T dispman_display;
-    DISPMANX_UPDATE_HANDLE_T dispman_update;
-    VC_DISPMANX_ALPHA_T alpha;
-    VC_RECT_T dst_rect;
-    VC_RECT_T src_rect;
-
-    static const EGLint attribute_list[] =
-    {
-        EGL_RED_SIZE, 8,
-        EGL_GREEN_SIZE, 8,
-        EGL_BLUE_SIZE, 8,
-        EGL_ALPHA_SIZE, 8,
-        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-        EGL_NONE
-    };
-
-    EGLConfig config;
-
-    // Get an EGL display connection
-    display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    assert(display!=EGL_NO_DISPLAY);
-
-    // Initialize the EGL display connection
-    result = eglInitialize(display, NULL, NULL);
-    assert(EGL_FALSE != result);
-
-    // Get an appropriate EGL frame buffer configuration
-    result = eglChooseConfig(display, attribute_list, &config, 1, &num_config);
-    assert(EGL_FALSE != result);
-
-    // Create an EGL rendering context
-    context = eglCreateContext(display, config, EGL_NO_CONTEXT, NULL);
-    assert(context!=EGL_NO_CONTEXT);
-
-    // Create an EGL window surface
-    success = graphics_get_display_size(0 /* LCD */, &screen_width, &screen_height);
-    assert( success >= 0 );
-
-    int32_t zoom = screen_width / GAMEBOY_WIDTH;
-    int32_t zoom2 = screen_height / GAMEBOY_HEIGHT;
-
-    if (zoom2 < zoom)
-        zoom = zoom2;
-
-    int32_t display_width = GAMEBOY_WIDTH * zoom;
-    int32_t display_height = GAMEBOY_HEIGHT * zoom;
-    int32_t display_offset_x = (screen_width / 2) - (display_width / 2);
-    int32_t display_offset_y = (screen_height / 2) - (display_height / 2);
-
-    dst_rect.x = 0;
-    dst_rect.y = 0;
-    dst_rect.width = screen_width;
-    dst_rect.height = screen_height;
-
-    src_rect.x = 0;
-    src_rect.y = 0;
-    src_rect.width = screen_width << 16;
-    src_rect.height = screen_height << 16;
-
-    dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
-    dispman_update = vc_dispmanx_update_start( 0 );
-
-    alpha.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS;
-    alpha.opacity = 255;
-    alpha.mask = 0;
-
-    dispman_element = vc_dispmanx_element_add ( dispman_update, dispman_display,
-        0/*layer*/, &dst_rect, 0/*src*/,
-        &src_rect, DISPMANX_PROTECTION_NONE, &alpha, 0/*clamp*/, DISPMANX_NO_ROTATE/*transform*/);
-
-    nativewindow.element = dispman_element;
-    nativewindow.width = screen_width;
-    nativewindow.height = screen_height;
-    vc_dispmanx_update_submit_sync( dispman_update );
-
-    surface = eglCreateWindowSurface( display, config, &nativewindow, NULL );
-    assert(surface != EGL_NO_SURFACE);
-
-    // Connect the context to the surface
-    result = eglMakeCurrent(display, surface, surface, context);
-    assert(EGL_FALSE != result);
-
-    eglSwapInterval(display, 1);
-
-    glGenTextures(1, &theGBTexture);
-
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, theGBTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrthof(0.0f, screen_width, screen_height, 0.0f, -1.0f, 1.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glViewport(0.0f, 0.0f, screen_width, screen_height);
-
-    quadVerts[0] = display_offset_x;
-    quadVerts[1] = display_offset_y;
-    quadVerts[2] = display_offset_x + display_width;
-    quadVerts[3] = display_offset_y;
-    quadVerts[4] = display_offset_x + display_width;
-    quadVerts[5] = display_offset_y + display_height;
-    quadVerts[6] = display_offset_x;
-    quadVerts[7] = display_offset_y + display_height;
-
-    glVertexPointer(2, GL_SHORT, 0, quadVerts);
-    glEnableClientState(GL_VERTEX_ARRAY);
-
-    glTexCoordPointer(2, GL_FLOAT, 0, kQuadTex);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
-    glClear(GL_COLOR_BUFFER_BIT);
-}
-
 void init(void)
 {
-
-    bcm_host_init();
-    init_ogl();
     init_sdl();
 
     theGearboyCore = new GearboyCore();
