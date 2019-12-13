@@ -71,6 +71,7 @@ uint32_t screen_width, screen_height;
 
 SDL_Window* theWindow;
 SDL_Renderer* theRenderer;
+SDL_Texture* theScreen;
 
 void update(void)
 {
@@ -203,10 +204,14 @@ void update(void)
         theSoundQueue->write(theSampleBufffer, sampleCount);
     }
 
-    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
-    //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    //eglSwapBuffers(display, surface);    
-    u_int32_t i;
+    SDL_RenderClear(theRenderer);
+
+    SDL_UpdateTexture(theScreen, NULL, theFrameBuffer, GAMEBOY_WIDTH * sizeof(Uint32));
+            
+    SDL_RenderCopy(theRenderer, theScreen, NULL, NULL);
+
+
+    /*u_int32_t i;
     for (i = 0; i < GAMEBOY_WIDTH*GAMEBOY_HEIGHT; ++i){
         int x = i % GAMEBOY_WIDTH;
         int y = i / GAMEBOY_WIDTH;
@@ -214,7 +219,7 @@ void update(void)
         SDL_SetRenderDrawColor(theRenderer, color.red, color.green, color.blue, color.alpha);
         SDL_RenderDrawPoint(theRenderer, x, y);
         
-    }
+    }*/
     
     
     /*for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
@@ -249,6 +254,8 @@ void init_sdl(void)
     {
         Log("SDL Error Video: %s", SDL_GetError());
     }
+
+    theScreen =  SDL_CreateTexture(theRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
 
     SDL_ShowCursor(SDL_DISABLE);
 
@@ -455,6 +462,7 @@ void end(void)
     SafeDeleteArray(theFrameBuffer);
     SafeDelete(theSoundQueue);
     SafeDelete(theGearboyCore);
+    SDL_DestroyTexture(theScreen);
     SDL_DestroyWindow(theWindow);
     SDL_Quit();
 }
