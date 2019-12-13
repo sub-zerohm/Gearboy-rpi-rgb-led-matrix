@@ -29,18 +29,17 @@ Features
 Build Instructions
 ----------------------
 
-### Raspberry Pi 2 & 3 - Raspbian
+### Raspberry 4
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
 ``` shell
 sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get install build-essential libfreeimage-dev libopenal-dev libpango1.0-dev libsndfile-dev libudev-dev libasound2-dev libjpeg-dev libtiff5-dev libwebp-dev automake
 cd ~
-wget https://www.libsdl.org/release/SDL2-2.0.9.tar.gz
-tar zxvf SDL2-2.0.9.tar.gz
-cd SDL2-2.0.9 && mkdir build && cd build
-../configure --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl --host=armv7l-raspberry-linux-gnueabihf
-// on pi4 just run ../configure
+wget https://www.libsdl.org/release/SDL2-2.0.10.tar.gz
+tar zxvf SDL2-2.0.10.tar.gz
+cd SDL2-2.0.10 && mkdir build && cd build
+../configure --enable-video-kmsdrm --disable-video-rpi
 make -j 4
 sudo make install
 ```
