@@ -236,7 +236,7 @@ void init_matrix(int argc, char** argv){
         if (!rgb_matrix::ParseOptionsFromFlags(&argc, &argv,
                                                 &matrix_options, &runtime_options)) {
 
-            Log("RGB_MATRIX Complains over options!")
+            Log("RGB_MATRIX Complains over options!");
             //usage(argv[0]);
             //return 1;
         }
