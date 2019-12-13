@@ -9,7 +9,7 @@ CFLAGS+=-Wall -O3 -march=armv8-a+crc -mtune=cortex-a72 -mfpu=neon-fp-armv8 -mflo
 #LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lbrcmEGL -lbrcmGLESv2 -lopenmaxil -lvcos -lvchiq_arm -lm -lrt -lconfig++ -lbcm_host `sdl2-config --libs`
 LDFLAGS+=-lm -lrt -lconfig++ -lrgbmatrix `sdl2-config --libs`
 #INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/ -I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux  -I$(GEARBOY_SRC) -I./
-INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -I./rpi-rgb-led-matrix/include -I./ -L./rpi-rgb-led-matrix/lib -I$(GEARBOY_SRC) 
+INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux -I./rpi-rgb-led-matrix/include -I./ -I$(GEARBOY_SRC) -L./rpi-rgb-led-matrix/lib
 
 .SECONDARY: $(OBJS)
 
