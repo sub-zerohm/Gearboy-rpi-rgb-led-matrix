@@ -255,7 +255,7 @@ void init_sdl(void)
         Log("SDL Error Video: %s", SDL_GetError());
     }
 
-    theScreen =  SDL_CreateTexture(theRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
+    theScreen =  SDL_CreateTexture(theRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
 
     SDL_ShowCursor(SDL_DISABLE);
 
