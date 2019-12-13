@@ -1,5 +1,5 @@
-GEARBOY_SRC=../../../src
-GEARBOY_AUDIO_SRC=../../audio-shared
+GEARBOY_SRC=../../src
+GEARBOY_AUDIO_SRC=../audio-shared
 GEARBOY_RPI_SRC=./
 
 include $(GEARBOY_RPI_SRC)/Makefile.common
