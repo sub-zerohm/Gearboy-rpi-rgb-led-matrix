@@ -236,7 +236,7 @@ void init_matrix(int argc, char** argv){
         if (!rgb_matrix::ParseOptionsFromFlags(&argc, &argv,
                                                 &matrix_options, &runtime_options)) {
             //usage(argv[0]);
-            return 1;
+            //return 1;
         }
 
         // Initialize matrix library.
