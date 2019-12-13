@@ -13,11 +13,14 @@ INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include
 
 .SECONDARY: $(OBJS)
 
-all: $(BIN) $(LIB)
+all: $(BIN) $(LIB) ./rpi-rgb-led-matrix/lib/librgbmatrix.a
 
 %.o: %.cpp
 	@rm -f $@
 	$(CXX) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+./rpi-rgb-led-matrix/lib/librgbmatrix.a:
+	$(MAKE) -C ./rpi-rgb-led-matrix/lib
 
 $(BIN): $(OBJS)
 	$(CC) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) -lstdc++ -Wl,--no-whole-archive -rdynamic
