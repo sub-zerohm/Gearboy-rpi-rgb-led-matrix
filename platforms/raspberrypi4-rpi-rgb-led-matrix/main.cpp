@@ -30,7 +30,7 @@
 #include <SDL2/SDL.h>
 #include <libconfig.h++>
 #include "bcm_host.h"
-#include "GLES2/gl2.h"
+#include "GLES/gl.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "gearboy.h"
