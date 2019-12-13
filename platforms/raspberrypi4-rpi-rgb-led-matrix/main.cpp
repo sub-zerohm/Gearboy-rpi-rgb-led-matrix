@@ -78,8 +78,8 @@ void update_matrix(void){
 
     for(uint32_t i=0; i < totalPixels; i++ ){
         GB_Color pixelColor = theFrameBuffer[i];
-        uint32_t x = pixelColor % GAMEBOY_WIDTH;
-        uint32_t y = pixelColor / GAMEBOY_WIDTH;
+        uint32_t x = i % GAMEBOY_WIDTH;
+        uint32_t y = i / GAMEBOY_WIDTH;
         canvas->SetPixel(x, y, pixelColor.red, pixelColor.green, pixelColor.blue);
     }
     canvas->Clear();
@@ -228,7 +228,7 @@ void update(void)
     
 }
 
-void init_matrix(char** argv){
+void init_matrix(int argc, char** argv){
         // Initialize from flags.
         rgb_matrix::RGBMatrix::Options matrix_options;
         rgb_matrix::RuntimeOptions runtime_options;
@@ -399,7 +399,7 @@ void init_sdl(void)
     }
 }
 
-void init(void)
+void init(int argc, char** argv)
 {
     init_sdl();
     init_matrix();
@@ -487,7 +487,7 @@ void end(void)
 
 int main(int argc, char** argv)
 {
-    init();
+    init(argc, argv);
 
     if (argc < 2)
     {
