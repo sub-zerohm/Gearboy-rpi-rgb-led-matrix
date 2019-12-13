@@ -40,11 +40,6 @@ bool paused = false;
 
 static const char *output_file = "gearboy.cfg";
 
-const float kGB_Width = 160.0f;
-const float kGB_Height = 144.0f;
-const float kGB_TexWidth = kGB_Width / 256.0f;
-const float kGB_TexHeight = kGB_Height / 256.0f;
-
 GearboyCore* theGearboyCore;
 Sound_Queue* theSoundQueue;
 GB_Color* theFrameBuffer;
@@ -209,29 +204,6 @@ void update(void)
     SDL_UpdateTexture(theScreen, NULL, theFrameBuffer, GAMEBOY_WIDTH * sizeof(Uint32));
             
     SDL_RenderCopy(theRenderer, theScreen, NULL, NULL);
-
-
-    /*u_int32_t i;
-    for (i = 0; i < GAMEBOY_WIDTH*GAMEBOY_HEIGHT; ++i){
-        int x = i % GAMEBOY_WIDTH;
-        int y = i / GAMEBOY_WIDTH;
-        GB_Color color = theFrameBuffer[i];
-        SDL_SetRenderDrawColor(theRenderer, color.red, color.green, color.blue, color.alpha);
-        SDL_RenderDrawPoint(theRenderer, x, y);
-        
-    }*/
-    
-    
-    /*for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
-    {
-        for (int x = 0; x < GAMEBOY_WIDTH; ++x)
-        {
-            int pixel = (y * GAMEBOY_WIDTH) + x;
-            GB_Color color = theFrameBuffer[pixel];
-            SDL_SetRenderDrawColor(theRenderer, color.red, color.green, color.blue, color.alpha);
-            SDL_RenderDrawPoint(theRenderer, x, y);
-        }
-    }*/
 
     SDL_RenderPresent(theRenderer);
     
