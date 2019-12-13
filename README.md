@@ -43,6 +43,12 @@ cd SDL2-2.0.9 && mkdir build && cd build
 make -j 4
 sudo make install
 ```
+
+Clone this repo with submodules:
+```
+git clone --recursive https://github.com/Dak0r/Gearboy-rpi-rgb-led-matrix.git  
+```
+
 - Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>
 - Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/x64/</code> folder to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
