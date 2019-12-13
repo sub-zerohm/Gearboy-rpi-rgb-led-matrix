@@ -18,15 +18,15 @@ CXX = g++
 all: ./rpi-rgb-led-matrix/lib/librgbmatrix.a $(BIN) $(LIB)
 
 %.o: %.cpp
-        @rm -f $@
-        $(CXX) $(CFLAGS) $(INCLUDES) -c $< -o $@
+		@rm -f $@
+		$(CXX) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 ./rpi-rgb-led-matrix/lib/librgbmatrix.a:
-        $(MAKE) -C ./rpi-rgb-led-matrix/lib
+		$(MAKE) -C ./rpi-rgb-led-matrix/lib
 
 $(BIN): $(OBJS)
-        $(CXX) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) $(INCLUDES) -lstdc++ -Wl,--no-whole-archive -rdynamic
+		$(CXX) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) $(INCLUDES) -lstdc++ -Wl,--no-whole-archive -rdynamic
 
 clean:
-        $(MAKE) -C ./rpi-rgb-led-matrix/lib clean
-        for i in $(OBJS); do (if test -e "$$i"; then ( rm $$i ); fi ); done
+		$(MAKE) -C ./rpi-rgb-led-matrix/lib clean
+		for i in $(OBJS); do (if test -e "$$i"; then ( rm $$i ); fi ); done
