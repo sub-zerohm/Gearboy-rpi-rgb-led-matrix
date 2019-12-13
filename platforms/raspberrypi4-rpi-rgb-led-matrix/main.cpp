@@ -202,9 +202,9 @@ void update(void)
         theSoundQueue->write(theSampleBufffer, sampleCount);
     }
 
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    eglSwapBuffers(display, surface);
+    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
+    //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    //eglSwapBuffers(display, surface);
 }
 
 void init_sdl(void)
