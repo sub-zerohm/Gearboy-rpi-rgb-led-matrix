@@ -29,6 +29,7 @@
 #include <sys/time.h>
 #include <SDL2/SDL.h>
 #include <libconfig.h++>
+#include <led-matrix.h>
 #include "gearboy.h"
 #include "../audio-shared/Sound_Queue.h"
 
@@ -67,6 +68,21 @@ uint32_t screen_width, screen_height;
 SDL_Window* theWindow;
 SDL_Renderer* theRenderer;
 SDL_Texture* theScreen;
+
+RGBMatrix *canvas;
+
+
+void update_matrix(void){
+    uint32_t totalPixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
+
+    for(uint32_t i=0; i < totalPixels; i++ ){
+        GB_Color pixelColor = theFrameBuffer[i];
+        uint32_t x = pixelColor % GAMEBOY_WIDTH;
+        uint32_t y = pixelColor / GAMEBOY_WIDTH;
+        canvas->SetPixel(x, y, pixelColor.red, pixelColor.green, pixelColor.blue);
+    }
+    canvas->Clear();
+}
 
 void update(void)
 {
@@ -206,7 +222,33 @@ void update(void)
     SDL_RenderCopy(theRenderer, theScreen, NULL, NULL);
 
     SDL_RenderPresent(theRenderer);
+
+    update_matrix();
     
+}
+
+void init_matrix(char** argv){
+        // Initialize from flags.
+        rgb_matrix::RGBMatrix::Options matrix_options;
+        rgb_matrix::RuntimeOptions runtime_options;
+        runtime_options.drop_privileges = -1;  // Need root
+        if (!rgb_matrix::ParseOptionsFromFlags(&argc, &argv,
+                                                &matrix_options, &runtime_options)) {
+            //usage(argv[0]);
+            return 1;
+        }
+
+        // Initialize matrix library.
+    // Create canvas and apply GridTransformer.
+    RGBMatrix *canvas = CreateMatrixFromOptions(matrix_options, runtime_options);
+    canvas->Clear();
+}
+
+
+
+void end_matrix(void){
+    canvas->Clear();
+    delete canvas;
 }
 
 void init_sdl(void)
@@ -359,6 +401,7 @@ void init_sdl(void)
 void init(void)
 {
     init_sdl();
+    init_matrix();
 
     theGearboyCore = new GearboyCore();
     theGearboyCore->Init();
@@ -381,6 +424,8 @@ void init(void)
 
 void end(void)
 {
+
+    end_matrix();
     Config cfg;
 
     Setting &root = cfg.getRoot();
@@ -443,7 +488,7 @@ int main(int argc, char** argv)
 {
     init();
 
-    if (argc < 2 || argc > 4)
+    if (argc < 2)
     {
         end();
         printf("usage: %s rom_path [options]\n", argv[0]);
