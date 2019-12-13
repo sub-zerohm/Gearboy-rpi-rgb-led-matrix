@@ -402,7 +402,7 @@ void init_sdl(void)
 void init(int argc, char** argv)
 {
     init_sdl();
-    init_matrix();
+    init_matrix(argc, argv);
 
     theGearboyCore = new GearboyCore();
     theGearboyCore->Init();
