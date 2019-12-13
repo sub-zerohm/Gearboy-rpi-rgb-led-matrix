@@ -205,6 +205,18 @@ void update(void)
     //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
     //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     //eglSwapBuffers(display, surface);
+
+    
+    u_int32_t i;
+    for (i = 0; i < GAMEBOY_WIDTH*GAMEBOY_HEIGHT; ++i){
+        int x = i % GAMEBOY_WIDTH;
+        int y = i / GAMEBOY_WIDTH;
+        
+        GB_Color* pixel = (theFrameBuffer+i);
+        SDL_SetRenderDrawColor(theRenderer, pixel->red, pixel->green, pixel->blue, pixel->alpha);
+        SDL_RenderDrawPoint(theRenderer, x, y);
+    }
+    SDL_RenderPresent(theRenderer);
 }
 
 void init_sdl(void)
@@ -276,12 +288,6 @@ void init_sdl(void)
 
     SDL_SetRenderDrawColor(theRenderer, dmg_palette[0].red, dmg_palette[0].green, dmg_palette[0].blue, dmg_palette[0].alpha);
     SDL_RenderClear(theRenderer);
-    SDL_SetRenderDrawColor(theRenderer, dmg_palette[2].red, dmg_palette[2].green, dmg_palette[2].blue, dmg_palette[2].alpha);
-    u_int32_t i;
-    for (i = 0; i < screen_width; ++i){
-        SDL_RenderDrawPoint(theRenderer, i, i);
-    }
-    SDL_RenderPresent(theRenderer);
 
     Config cfg;
 
