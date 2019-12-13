@@ -1,25 +1,14 @@
 Gearboy
 =======
-<b>Copyright &copy; 2012 by Ignacio Sanchez</b>
+<b>Original Copyright: Gearboy &copy; 2012 by Ignacio Sanchez</b>
 
 ----------
-[![Build Status](https://travis-ci.org/drhelius/Gearboy.svg?branch=master)](https://travis-ci.org/drhelius/Gearboy)
-
 Gearboy is a Nintendo Game Boy / GameBoy Color emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows, Linux and RetroArch.
+This forks addds an additional display mode the emulator, that uses the [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix)-library to display the image directly onto an LED Matrix Panel.
 
-Follow me on Twitter for updates: http://twitter.com/drhelius
+See Original Git for Instructions for other platforms / use cases: https://github.com/drhelius/Gearboy 
 
 ----------
-
-Downloads
---------
-- **iOS**: Build Gearboy with Xcode and transfer it to your device. You can open rom files from other apps like Safari or Dropbox, or use [iTunes file sharing](http://support.apple.com/kb/ht4094).
-- **Mac OS X**: <code>brew install gearboy</code>
-- **Windows**: [Gearboy-2.7.0-Windows.zip](https://github.com/drhelius/Gearboy/releases/download/gearboy-2.7.0/Gearboy-2.7.0-Windows.zip) (NOTE: You may need to install the [Microsoft Visual C++ Redistributable](https://go.microsoft.com/fwlink/?LinkId=746572))
-- **Linux**: [Gearboy-2.7.0-Linux.tar.xz](https://github.com/drhelius/Gearboy/releases/download/gearboy-2.7.0/Gearboy-2.7.0-Linux.tar.xz)
-- **RetroArch**: [Libretro core documentation](https://docs.libretro.com/library/gearboy/).
-- **Raspberry Pi**: Build Gearboy from sources. Optimized projects are provided for Raspberry Pi 1, 2 and 3.
-- **Ubuntu Touch** version by Ryan Pattison: [here](https://uappexplorer.com/app/gearboy.rpattison)
 
 Features
 --------
@@ -40,11 +29,6 @@ Features
 Build Instructions
 ----------------------
 
-### iOS
-- Install Xcode for Mac OS X. You need iOS SDK 8 or later.
-- Build the project <code>platforms/ios/Gearboy.xcodeproj</code>
-- Run it on real hardware using your iOS developer certificate. Make sure it builds on Release for better performance.
-
 ### Raspberry Pi 2 & 3 - Raspbian
 - Install and configure [SDL 2](http://www.libsdl.org/download-2.0.php) for development:
 ``` shell
@@ -64,51 +48,7 @@ sudo make install
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
 - Gearboy generates a <code>gearboy.cfg</code> configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
-### Windows
-- You need Visual Studio 2017 or later.
-- Install the [Qt 5 Open Source SDK for Windows](https://www.qt.io/download/).
-- Install the [QtVisualStudioTools Extension](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123) and point it to the Qt SDK.
-- Open the Gearboy Visual Studio solution <code>platforms/windows/Gearboy/Gearboy.sln</code> and build.
-- You may want to use the <code>platforms/windows/Gearboy/Gearboy.pro</code> project file with Qt Creator instead.
 
-### Mac OS X
-- You need Qt Creator, included in the Qt 5 SDK.
-- Install Xcode and run <code>xcode-select --install</code> in the terminal for the compiler to be available on the command line.
-- Install the [Qt 5 SDK for Mac OS](https://www.qt.io/download/).
-- Download [SDL 2](http://www.libsdl.org/download-2.0.php) source code. Then run this commands:
-``` shell
-./configure
-make
-sudo make install
-```
-- Open the <code>platforms/macosx/Gearboy/Gearboy.pro</code> project file with Qt Creator and build.
-
-### Linux
-- Ubuntu / Debian:
-``` shell
-sudo apt-get install build-essential qt5-default qttools5-dev-tools freeglut3-dev libsdl2-dev libglew-dev
-cd platforms/linux/Gearboy
-qmake Gearboy.pro && make
-```
-- Fedora:
-``` shell
-sudo dnf install @development-tools gcc-c++ qt5-devel freeglut-devel SDL2-devel glew-devel
-cd platforms/linux/Gearboy
-qmake-qt5 Gearboy.pro && make
-```
-
-Accuracy Tests
-------------
-Compared to other emulators: [see here](http://tasvideos.org/EmulatorResources/GBAccuracyTests.html).
-
-Tests from [blargg's test roms](https://github.com/retrio/gb-test-roms):
-
-![cpu_instrs.gb](http://www.geardome.com/files/gearboy/gearboy_001.png)![insrt_timing.gb](http://www.geardome.com/files/gearboy/gearboy_002.png)![lcd_sync.gb](http://www.geardome.com/files/gearboy/gearboy_003.png)![dmg_sound.gb](http://www.geardome.com/files/gearboy/gearboy_032.png)![cgb_sound.gb](http://www.geardome.com/files/gearboy/gearboy_033.png)![mem_timing.gb](http://www.geardome.com/files/gearboy/gearboy_memtiming2.png)
-
-Screenshots
------------
-
-![Screenshot](http://www.geardome.com/files/gearboy/gearboy_004.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_006.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_008.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_022.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_013.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_023.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_015.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_029.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_011.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_024.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_017.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_016.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_034.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_026.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_018.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_025.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_021.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_027.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_019.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_020.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_031.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_028.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_007.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_009.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_010.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_005.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_012.png)![Screenshot](http://www.geardome.com/files/gearboy/gearboy_014.png)
 
 License
 -------
