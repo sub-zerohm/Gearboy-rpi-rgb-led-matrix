@@ -70,7 +70,7 @@ SDL_Window* theWindow;
 SDL_Renderer* theRenderer;
 SDL_Texture* theScreen;
 
-RGBMatrix *canvas;
+RGBMatrix* canvas;
 
 
 void update_matrix(void){
@@ -235,13 +235,15 @@ void init_matrix(int argc, char** argv){
         runtime_options.drop_privileges = -1;  // Need root
         if (!rgb_matrix::ParseOptionsFromFlags(&argc, &argv,
                                                 &matrix_options, &runtime_options)) {
+
+            Log("RGB_MATRIX Complains over options!")
             //usage(argv[0]);
             //return 1;
         }
 
         // Initialize matrix library.
     // Create canvas and apply GridTransformer.
-    RGBMatrix *canvas = CreateMatrixFromOptions(matrix_options, runtime_options);
+    canvas = CreateMatrixFromOptions(matrix_options, runtime_options);
     canvas->Clear();
 }
 
@@ -507,12 +509,12 @@ int main(int argc, char** argv)
                 audioEnabled = false;
             else if (strcmp("-forcedmg", argv[i]) == 0)
                 forcedmg = true;
-            else
+            /*else
             {
                 end();
                 printf("invalid option: %s\n", argv[i]);
                 return -1;
-            }
+            }*/
         }
     }
 
