@@ -206,7 +206,7 @@ void update(void)
     //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 160, 144, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*) theFrameBuffer);
     //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     //eglSwapBuffers(display, surface);    
-    /*u_int32_t i;
+    u_int32_t i;
     for (i = 0; i < GAMEBOY_WIDTH*GAMEBOY_HEIGHT; ++i){
         int x = i % GAMEBOY_WIDTH;
         int y = i / GAMEBOY_WIDTH;
@@ -215,9 +215,9 @@ void update(void)
         SDL_RenderDrawPoint(theRenderer, x, y);
         
     }
-   */
     
-    for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
+    
+    /*for (int y = 0; y < GAMEBOY_HEIGHT; ++y)
     {
         for (int x = 0; x < GAMEBOY_WIDTH; ++x)
         {
@@ -226,7 +226,7 @@ void update(void)
             SDL_SetRenderDrawColor(theRenderer, color.red, color.green, color.blue, color.alpha);
             SDL_RenderDrawPoint(theRenderer, x, y);
         }
-    }
+    }*/
 
     SDL_RenderPresent(theRenderer);
     
