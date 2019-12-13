@@ -40,6 +40,7 @@ wget https://www.libsdl.org/release/SDL2-2.0.9.tar.gz
 tar zxvf SDL2-2.0.9.tar.gz
 cd SDL2-2.0.9 && mkdir build && cd build
 ../configure --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl --host=armv7l-raspberry-linux-gnueabihf
+// on pi4 just run ../configure
 make -j 4
 sudo make install
 ```
@@ -50,7 +51,7 @@ git clone --recursive https://github.com/Dak0r/Gearboy-rpi-rgb-led-matrix.git
 ```
 
 - Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>
-- Use <code>make -j 4</code> in the <code>platforms/raspberrypi3/x64/</code> folder to build the project.
+- Use <code>make -j 4</code> in the <code>platforms/raspberrypi4-rpi-rgb-led-matrix</code> folder to build the project. (untested, but should also work for pi 3s)
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
 - Gearboy generates a <code>gearboy.cfg</code> configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
