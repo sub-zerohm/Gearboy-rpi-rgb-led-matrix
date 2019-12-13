@@ -6,10 +6,10 @@ include $(GEARBOY_RPI_SRC)/Makefile.common
 
 CFLAGS+=-Wall -O3 -march=armv8-a+crc -mtune=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
 
-LDFLAGS+=-L$(SDKSTAGE)/opt/vc/lib/ -lbrcmEGL -lbrcmGLESv2 -lopenmaxil -lvcos -lvchiq_arm -lm -lrt -lconfig++ -lbcm_host `sdl2-config --libs`
-
-INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/ -I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux  -I$(GEARBOY_SRC) -I./
-
+LDFLAGS+=-lbrcmEGL -lbrcmGLESv2 -lopenmaxil -lvcos -lvchiq_arm -lm -lrt -lconfig++ -lbcm_host `sdl2-config --libs`
+#-L$(SDKSTAGE)/opt/vc/lib/ 
+INCLUDES+=-I$(SDKSTAGE)/opt/vc/include/interface/vcos/pthreads -I/opt/vc/include/interface/vmcs_host/linux  -I$(GEARBOY_SRC) -I./
+#-I$(SDKSTAGE)/opt/vc/include/ 
 .SECONDARY: $(OBJS)
 
 all: $(BIN) $(LIB)
