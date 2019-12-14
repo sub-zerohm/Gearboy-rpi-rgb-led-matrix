@@ -254,7 +254,7 @@ void init_matrix(int argc, char** argv){
     matrix_width = matrix_options.cols * matrix_options.chain_length;
     matrix_height = matrix_options.rows * matrix_options.parallel;
     char buffer[256];
-    snprintf(buffer, sizeof(buffer), "Matrix Width: "+%d+" Matrix Height: "+%d, matrix_width, matrix_height);
+    snprintf(buffer, sizeof(buffer), "Matrix Width: %d Matrix Height: %d", matrix_width, matrix_height);
     Log(buffer);
     canvas->Clear();
 }
