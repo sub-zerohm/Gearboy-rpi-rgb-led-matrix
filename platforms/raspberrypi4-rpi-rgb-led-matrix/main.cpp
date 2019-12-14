@@ -91,12 +91,12 @@ void update_matrix(void){
         if(fby % 8 == 0 ){ // hard coded value for testing: 128 / 144 = 0.88888888888 = 88% (skip 12 when 100 -> skip 1 when 8.33333333333)
             continue;
         }
-        uint32_t mx = fbx + fbx/5;
-        uint32_t my = fby + fby/5;
-        if(y >= matrix_height){
+        uint32_t mx = fbx - fbx/5;
+        uint32_t my = fby - fby/5;
+        if(my >= matrix_height){
             break;
-        }else if(x < matrix_width){
-            offscreen_canvas->SetPixel(x, y, pixelColor.red, pixelColor.green, pixelColor.blue);
+        }else if(mx < matrix_width){
+            offscreen_canvas->SetPixel(mx, my, pixelColor.red, pixelColor.green, pixelColor.blue);
         }
     }
     offscreen_canvas = matrix->SwapOnVSync(offscreen_canvas);
