@@ -70,7 +70,11 @@ SDL_Window* theWindow;
 SDL_Renderer* theRenderer;
 SDL_Texture* theScreen;
 
+rgb_matrix::RGBMatrix::Options matrix_options;
+uint32_t matrix_width;
+uint32_t matrix_height;
 RGBMatrix* canvas;
+
 
 
 void update_matrix(void){
@@ -80,7 +84,11 @@ void update_matrix(void){
         GB_Color pixelColor = theFrameBuffer[i];
         uint32_t x = i % GAMEBOY_WIDTH;
         uint32_t y = i / GAMEBOY_WIDTH;
-        canvas->SetPixel(x, y, pixelColor.red, pixelColor.green, pixelColor.blue);
+        if(y >= matrix_height){
+            break;
+        }else if(x < matrix_width){
+            canvas->SetPixel(x, y, pixelColor.red, pixelColor.green, pixelColor.blue);
+        }
     }
     canvas->Clear();
 }
@@ -230,7 +238,7 @@ void update(void)
 
 void init_matrix(int argc, char** argv){
         // Initialize from flags.
-        rgb_matrix::RGBMatrix::Options matrix_options;
+
         rgb_matrix::RuntimeOptions runtime_options;
         runtime_options.drop_privileges = -1;  // Need root
         if (!rgb_matrix::ParseOptionsFromFlags(&argc, &argv,
@@ -240,10 +248,12 @@ void init_matrix(int argc, char** argv){
             //usage(argv[0]);
             //return 1;
         }
-
         // Initialize matrix library.
     // Create canvas and apply GridTransformer.
     canvas = CreateMatrixFromOptions(matrix_options, runtime_options);
+    matrix_width = matrix_options.cols * matrix_options.chain_length;
+    matrix_height = matrix_options.rows * matrix_options.parallel;
+    Log("Matrix Width: "+matrix_width+" Matrix Height: "+matrix_height);
     canvas->Clear();
 }
 
