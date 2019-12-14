@@ -85,10 +85,10 @@ void update_matrix(void){
         GB_Color pixelColor = theFrameBuffer[i];
         uint32_t fbx = i % GAMEBOY_WIDTH;
         uint32_t fby = i / GAMEBOY_WIDTH;
-        if(fbx % 5 == 0 ){ // hard coded value for testing: 128 / 160 = 0.8 = 80% = Render 8 out of 10 pixels = render 4 out of 5, so skip every 5th!
+        if(fbx > 0 && fbx % 5 == 0 ){ // hard coded value for testing: 128 / 160 = 0.8 = 80% = Render 8 out of 10 pixels = render 4 out of 5, so skip every 5th!
             continue;
         }
-        if(fby % 8 == 0 ){ // hard coded value for testing: 128 / 144 = 0.88888888888 = 88% (skip 12 when 100 -> skip 1 when 8.33333333333)
+        if(fby > 0 && fby % 8 == 0 ){ // hard coded value for testing: 128 / 144 = 0.88888888888 = 88% (skip 12 when 100 -> skip 1 when 8.33333333333)
             continue;
         }
         uint32_t mx = fbx - fbx/5;
@@ -342,9 +342,9 @@ void init_sdl(void)
     dmg_palette[2].blue = 0x3B;
     dmg_palette[2].alpha = 0xFF;
 
-    dmg_palette[3].red = 0x04;
-    dmg_palette[3].green = 0x1C;
-    dmg_palette[3].blue = 0x16;
+    dmg_palette[3].red = 0x00;      // was 0x04
+    dmg_palette[3].green = 0x00;    // was 0x1C
+    dmg_palette[3].blue = 0x00;     // was 0x16
     dmg_palette[3].alpha = 0xFF;
 
     SDL_SetRenderDrawColor(theRenderer, dmg_palette[0].red, dmg_palette[0].green, dmg_palette[0].blue, dmg_palette[0].alpha);
