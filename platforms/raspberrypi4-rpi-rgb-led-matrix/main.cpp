@@ -81,10 +81,20 @@ FrameCanvas* offscreen_canvas;
 void update_matrix(void){
     uint32_t totalPixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
 
+    GAMEBOY_WIDTH = 
+
     for(uint32_t i=0; i < totalPixels; i++ ){
         GB_Color pixelColor = theFrameBuffer[i];
-        uint32_t x = i % GAMEBOY_WIDTH;
-        uint32_t y = i / GAMEBOY_WIDTH;
+        uint32_t fbx = i % GAMEBOY_WIDTH;
+        uint32_t fby = i / GAMEBOY_WIDTH;
+        if(fbx % 5 == 0 ){ // hard coded value for testing: 128 / 160 = 0.8 = 80% = Render 8 out of 10 pixels = render 4 out of 5, so skip every 5th!
+            continue;
+        }
+        if(fby % 8 == 0 ){ // hard coded value for testing: 128 / 144 = 0.88888888888 = 88% (skip 12 when 100 -> skip 1 when 8.33333333333)
+            continue;
+        }
+        uint32_t mx = fbx + fbx/5;
+        uint32_t my = fby + fby/5;
         if(y >= matrix_height){
             break;
         }else if(x < matrix_width){
