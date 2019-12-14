@@ -1,6 +1,7 @@
 {
     "cquery.cacheDirectory": "${workspaceFolder}/.vscode/cquery_cached_index/",
     "files.associations": {
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "xiosbase": "cpp"
     }
 }
