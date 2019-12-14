@@ -88,10 +88,10 @@ void update_matrix(void){
         if(y >= matrix_height){
             break;
         }else if(x < matrix_width){
-            led_canvas_set_pixel(offscreen_canvas, x, y, pixelColor.red, pixelColor.green, pixelColor.blue);
+            offscreen_canvas->SetPixel(x, y, pixelColor.red, pixelColor.green, pixelColor.blue);
         }
     }
-    offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
+    offscreen_canvas = matrix->SwapOnVSync(offscreen_canvas);
     //matrix->Clear();
 }
 
@@ -253,10 +253,10 @@ void init_matrix(int argc, char** argv){
         // Initialize matrix library.
     // Create matrix and apply GridTransformer.
     matrix = CreateMatrixFromOptions(matrix_options, runtime_options);
-    offscreen_canvas = led_matrix_create_offscreen_canvas(matrix);
-    led_canvas_get_size(offscreen_canvas, &matrix_width, &matrix_height);
-    //matrix_width = matrix_options.cols * matrix_options.chain_length;
-    //matrix_height = matrix_options.rows * matrix_options.parallel;
+    offscreen_canvas = matrix->CreateFrameCanvas();
+    
+    matrix_width = matrix_options.cols * matrix_options.chain_length;
+    matrix_height = matrix_options.rows * matrix_options.parallel;
     char buffer[256];
     snprintf(buffer, sizeof(buffer), "Matrix Width: %d Matrix Height: %d", matrix_width, matrix_height);
     Log(buffer);
@@ -267,7 +267,7 @@ void init_matrix(int argc, char** argv){
 
 void end_matrix(void){
     matrix->Clear();
-    led_matrix_delete(matrix);
+    delete matrix;
 }
 
 void init_sdl(void)
