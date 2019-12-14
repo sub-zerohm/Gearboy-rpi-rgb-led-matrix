@@ -92,7 +92,7 @@ void update_matrix(void){
             continue;
         }
         uint32_t mx = fbx - fbx/5;
-        uint32_t my = fby - fby/5;
+        uint32_t my = fby - fby/8;
         if(my >= matrix_height){
             break;
         }else if(mx < matrix_width){
