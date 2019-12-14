@@ -81,8 +81,6 @@ FrameCanvas* offscreen_canvas;
 void update_matrix(void){
     uint32_t totalPixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
 
-    GAMEBOY_WIDTH = 
-
     for(uint32_t i=0; i < totalPixels; i++ ){
         GB_Color pixelColor = theFrameBuffer[i];
         uint32_t fbx = i % GAMEBOY_WIDTH;
