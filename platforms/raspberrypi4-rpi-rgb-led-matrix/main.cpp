@@ -74,7 +74,7 @@ rgb_matrix::RGBMatrix::Options matrix_options;
 uint32_t matrix_width;
 uint32_t matrix_height;
 RGBMatrix* matrix;
-LedCanvas* offscreen_canvas;
+FrameCanvas* offscreen_canvas;
 
 
 
