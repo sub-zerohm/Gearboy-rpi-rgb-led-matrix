@@ -39,7 +39,7 @@ using namespace libconfig;
 using namespace rgb_matrix;
 
 #define SCREEN_FPS 59.7
-const uint32_t SCREEN_TICKS_PER_FRAME = (uint32_t) round(1000 / SCREEN_FPS );
+const uint32_t SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS; // (uint32_t) round()
 
 bool running = true;
 bool paused = false;
