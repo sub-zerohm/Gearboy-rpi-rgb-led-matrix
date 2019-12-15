@@ -26,6 +26,7 @@
 #include <iostream>
 #include <iomanip>
 #include <stdlib.h>
+#incluide <cmath>
 #include <sys/time.h>
 #include <SDL2/SDL.h>
 #include <libconfig.h++>
@@ -36,6 +37,9 @@
 using namespace std;
 using namespace libconfig;
 using namespace rgb_matrix;
+
+#define SCREEN_FPS = 59.7;
+const uint32_t SCREEN_TICKS_PER_FRAME = (uint32_t) round(1000 / SCREEN_FPS);
 
 bool running = true;
 bool paused = false;
@@ -75,6 +79,7 @@ uint32_t matrix_width;
 uint32_t matrix_height;
 RGBMatrix* matrix;
 FrameCanvas* offscreen_canvas;
+uint32_t timer_fps_cap_ticks_start = 0;
 
 
 
@@ -105,6 +110,8 @@ void update_matrix(void){
 
 void update(void)
 {
+    
+    timer_fps_cap_ticks_start = SDL_GetTicks();
     SDL_Event keyevent;
 
     while (SDL_PollEvent(&keyevent))
@@ -243,6 +250,11 @@ void update(void)
     SDL_RenderPresent(theRenderer);
 
     update_matrix();
+
+    uint32_t frameticks = SDL_GetTicks() - timer_fps_cap_ticks_start;
+    if (frameticks < SCREEN_TICKS_PER_FRAME) {
+        SDL_Delay(SCREEN_TICKS_PER_FRAME - frameticks);
+    }
     
 }
 
