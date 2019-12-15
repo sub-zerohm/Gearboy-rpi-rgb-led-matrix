@@ -26,7 +26,7 @@
 #include <iostream>
 #include <iomanip>
 #include <stdlib.h>
-#incluide <cmath>
+#include <cmath>
 #include <sys/time.h>
 #include <SDL2/SDL.h>
 #include <libconfig.h++>
@@ -38,8 +38,8 @@ using namespace std;
 using namespace libconfig;
 using namespace rgb_matrix;
 
-#define SCREEN_FPS = 59.7;
-const uint32_t SCREEN_TICKS_PER_FRAME = (uint32_t) round(1000 / SCREEN_FPS);
+#define SCREEN_FPS 59.7;
+const uint32_t SCREEN_TICKS_PER_FRAME = (uint32_t) round(1000 / SCREEN_FPS );
 
 bool running = true;
 bool paused = false;
