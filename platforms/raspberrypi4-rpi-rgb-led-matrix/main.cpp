@@ -433,7 +433,7 @@ void init_sdl(void)
     catch(const ParseException &pex)
     {
         std::cerr << "Parse error at " << pex.getFile() << ":" << pex.getLine()
-              << " - " << pex.getError() << std::endl;
+            << " - " << pex.getError() << std::endl;
     }
 }
 
