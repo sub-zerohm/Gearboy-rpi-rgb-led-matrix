@@ -86,18 +86,40 @@ uint32_t timer_fps_cap_ticks_start = 0;
 void update_matrix(void){
     uint32_t totalPixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
 
+    int skipx = 5;
+    int skipy = 8;
     for(uint32_t i=0; i < totalPixels; i++ ){
-        GB_Color pixelColor = theFrameBuffer[i];
         uint32_t fbx = i % GAMEBOY_WIDTH;
         uint32_t fby = i / GAMEBOY_WIDTH;
-        if(fbx > 0 && fbx % 5 == 0 ){ // hard coded value for testing: 128 / 160 = 0.8 = 80% = Render 8 out of 10 pixels = render 4 out of 5, so skip every 5th!
+        if(fbx > 0 && fbx % skipx == 0 ){ // hard coded value for testing: 128 / 160 = 0.8 = 80% = Render 8 out of 10 pixels = render 4 out of 5, so skip every 5th!
             continue;
         }
-        if(fby > 0 && fby % 8 == 0 ){ // hard coded value for testing: 128 / 144 = 0.88888888888 = 88% (skip 12 when 100 -> skip 1 when 8.33333333333)
+        if(fby > 0 && fby % skipy == 0 ){ // hard coded value for testing: 128 / 144 = 0.88888888888 = 88% (skip 12 when 100 -> skip 1 when 8.33333333333)
             continue;
         }
-        uint32_t mx = fbx - fbx/5;
-        uint32_t my = fby - fby/8;
+        GB_Color pixelColor = theFrameBuffer[i];
+        if(i+1 < totalPixels){
+            uint32_t nfbx = (i+1) % GAMEBOY_WIDTH;
+            uint32_t nfby = (i+1) / GAMEBOY_WIDTH;
+            if(nfbx % skipx == 0 && fby == nfby && nfby > 0 && nfbx > 0){
+                GB_Color tmpColor = pixelColor;
+                pixelColor.red = (u8)((theFrameBuffer[i+1].red + tmpColor.red) * 0.5;
+                pixelColor.green = (u8)((theFrameBuffer[i+1].red + tmpColor.green) * 0.5;
+                pixelColor.blue = (u8)((theFrameBuffer[i+1].red + tmpColor.blue) * 0.5;
+            }
+        }
+        if(i+GAMEBOY_WIDTH < totalPixels){
+            uint32_t nfbx = (i+GAMEBOY_WIDTH) % GAMEBOY_WIDTH;
+            uint32_t nfby = (i+GAMEBOY_WIDTH) / GAMEBOY_WIDTH;
+            if(nfby % skipy == 0 && fby+1 == nfby && nfby > 0 && nfbx > 0){
+                GB_Color tmpColor = pixelColor;
+                pixelColor.red = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].red + tmpColor.red) * 0.5;
+                pixelColor.green = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].red + tmpColor.green) * 0.5;
+                pixelColor.blue = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].red + tmpColor.blue) * 0.5;
+            }
+        }
+        uint32_t mx = fbx - fbx/skipx;
+        uint32_t my = fby - fby/skipy;
         if(my >= matrix_height){
             break;
         }else if(mx < matrix_width){
