@@ -103,9 +103,9 @@ void update_matrix(void){
             uint32_t nfby = (i+1) / GAMEBOY_WIDTH;
             if(nfbx % skipx == 0 && fby == nfby && nfby > 0 && nfbx > 0){
                 GB_Color tmpColor = pixelColor;
-                pixelColor.red = (u8)((theFrameBuffer[i+1].red + tmpColor.red) * 0.5;
-                pixelColor.green = (u8)((theFrameBuffer[i+1].red + tmpColor.green) * 0.5;
-                pixelColor.blue = (u8)((theFrameBuffer[i+1].red + tmpColor.blue) * 0.5;
+                pixelColor.red = (u8)((theFrameBuffer[i+1].red + tmpColor.red) * 0.5);
+                pixelColor.green = (u8)((theFrameBuffer[i+1].red + tmpColor.green) * 0.5);
+                pixelColor.blue = (u8)((theFrameBuffer[i+1].red + tmpColor.blue) * 0.5);
             }
         }
         if(i+GAMEBOY_WIDTH < totalPixels){
@@ -113,9 +113,9 @@ void update_matrix(void){
             uint32_t nfby = (i+GAMEBOY_WIDTH) / GAMEBOY_WIDTH;
             if(nfby % skipy == 0 && fby+1 == nfby && nfby > 0 && nfbx > 0){
                 GB_Color tmpColor = pixelColor;
-                pixelColor.red = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].red + tmpColor.red) * 0.5;
-                pixelColor.green = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].red + tmpColor.green) * 0.5;
-                pixelColor.blue = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].red + tmpColor.blue) * 0.5;
+                pixelColor.red = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].red + tmpColor.red) * 0.5);
+                pixelColor.green = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].red + tmpColor.green) * 0.5);
+                pixelColor.blue = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].red + tmpColor.blue) * 0.5);
             }
         }
         uint32_t mx = fbx - fbx/skipx;
