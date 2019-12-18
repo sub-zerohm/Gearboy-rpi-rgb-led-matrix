@@ -49,7 +49,7 @@ Clone this repo with submodules:
 git clone --recursive https://github.com/Dak0r/Gearboy-rpi-rgb-led-matrix.git  
 ```
 
-- Install libconfig library dependencies for development: <code>sudo apt-get install libconfig++-dev</code>
+- Install libconfig and boost filesystem library dependencies for development: <code>sudo apt-get install libconfig++-dev</code> and <code>sudo apt-get install libboost-filesystem-dev</code>
 - Use <code>make -j 4</code> in the <code>platforms/raspberrypi4-rpi-rgb-led-matrix</code> folder to build the project.
 - Use <code>export SDL_AUDIODRIVER=ALSA</code> before running the emulator for the best performance.
 - Gearboy generates a <code>gearboy.cfg</code> configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).

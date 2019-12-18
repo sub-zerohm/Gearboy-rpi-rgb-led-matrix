@@ -19,7 +19,7 @@ CXX = g++
 
 .SECONDARY: $(OBJS)
 
-all: ./rpi-rgb-led-matrix/lib/librgbmatrix.a $(BIN) $(LIB)
+all: ./rpi-rgb-led-matrix/lib/librgbmatrix.a gearboymatrix sromb.o sromb $(LIB)
 
 %.o: %.cpp
 		@rm -f $@
@@ -28,8 +28,11 @@ all: ./rpi-rgb-led-matrix/lib/librgbmatrix.a $(BIN) $(LIB)
 ./rpi-rgb-led-matrix/lib/librgbmatrix.a:
 		$(MAKE) -C ./rpi-rgb-led-matrix/lib
 
-$(BIN): $(OBJS)
+gearboymatrix: $(OBJS)
 		$(CXX) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) $(INCLUDES) -lstdc++ -Wl,--no-whole-archive -rdynamic
+
+sromb: sromb.o
+		$(CXX) -o $@ -Wl,--whole-archive $(GEARBOY_RPI_SRC)/sromb.o $(LDFLAGS) -lboost_system -lboost_filesystem $(INCLUDES) -lstdc++ -Wl,--no-whole-archive -rdynamic
 
 clean:
 		$(MAKE) -C ./rpi-rgb-led-matrix/lib clean
