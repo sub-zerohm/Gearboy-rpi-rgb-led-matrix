@@ -70,6 +70,7 @@ int jg_a, jg_b, jg_start, jg_select, jg_x_axis, jg_y_axis;
 
 uint32_t screen_width, screen_height;
 
+bool noWindow = false;
 SDL_Window* theWindow;
 SDL_Renderer* theRenderer;
 SDL_Texture* theScreen;
@@ -81,53 +82,64 @@ RGBMatrix* matrix;
 FrameCanvas* offscreen_canvas;
 uint32_t timer_fps_cap_ticks_start = 0;
 
+uint32_t totalPixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
+uint32_t skipx = 5;
+uint32_t skipy = 8;
+
 
 
 void update_matrix(void){
-    uint32_t totalPixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
 
-    int skipx = 5;
-    int skipy = 8;
     for(uint32_t i=0; i < totalPixels; i++ ){
-        uint32_t fbx = i % GAMEBOY_WIDTH;
-        uint32_t fby = i / GAMEBOY_WIDTH;
-        if(fbx > 0 && fbx % skipx == 0 ){ // hard coded value for testing: 128 / 160 = 0.8 = 80% = Render 8 out of 10 pixels = render 4 out of 5, so skip every 5th!
+        uint32_t fbX = i % GAMEBOY_WIDTH;
+        uint32_t fbY = i / GAMEBOY_WIDTH;
+
+
+        if(fbX > 0 && fbX % skipx == 0 ){ // hard coded value for testing: 128 / 160 = 0.8 = 80% = Render 8 out of 10 pixels = render 4 out of 5, so skip every 5th!
             continue;
         }
-        if(fby > 0 && fby % skipy == 0 ){ // hard coded value for testing: 128 / 144 = 0.88888888888 = 88% (skip 12 when 100 -> skip 1 when 8.33333333333)
+        if(fbY > 0 && fbY % skipy == 0){ // hard coded value for testing: 128 / 144 = 0.88888888888 = 88% (skip 12 when 100 -> skip 1 when 8.33333333333)
             continue;
         }
         GB_Color pixelColor = theFrameBuffer[i];
-        if(i+1 < totalPixels){
-            uint32_t nfbx = (i+1) % GAMEBOY_WIDTH;
-            uint32_t nfby = (i+1) / GAMEBOY_WIDTH;
-            if(nfbx % skipx == 0 && fby == nfby && nfby > 0 && nfbx > 0){
-                GB_Color tmpColor = pixelColor;
-                pixelColor.red = (u8)((theFrameBuffer[i+1].red + tmpColor.red) * 0.5);
-                pixelColor.green = (u8)((theFrameBuffer[i+1].green + tmpColor.green) * 0.5);
-                pixelColor.blue = (u8)((theFrameBuffer[i+1].blue + tmpColor.blue) * 0.5);
-            }
-        }
-        if(i+GAMEBOY_WIDTH < totalPixels){
-            uint32_t nfbx = (i+GAMEBOY_WIDTH) % GAMEBOY_WIDTH;
-            uint32_t nfby = (i+GAMEBOY_WIDTH) / GAMEBOY_WIDTH;
-            if(nfby % skipy == 0 && fby+1 == nfby && nfby > 0 && nfbx > 0){
-                GB_Color tmpColor = pixelColor;
-                pixelColor.red = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].red + tmpColor.red) * 0.5);
-                pixelColor.green = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].green + tmpColor.green) * 0.5);
-                pixelColor.blue = (u8)((theFrameBuffer[i+GAMEBOY_WIDTH].blue + tmpColor.blue) * 0.5);
-            }
-        }
-        uint32_t mx = fbx - fbx/skipx;
-        uint32_t my = fby - fby/skipy;
-        if(my >= matrix_height){
+
+        applySelectiveSkippedColorInterpolation(&pixelColor, i, fbX, fbY);
+
+        uint32_t matrixX = fbX - fbX/skipx;
+        uint32_t matrixY = fbY - fbY/skipy;
+        if(matrixY >= matrix_height){
             break;
-        }else if(mx < matrix_width){
-            offscreen_canvas->SetPixel(mx, my, pixelColor.red, pixelColor.green, pixelColor.blue);
+        }else if(matrixX < matrix_width){
+            offscreen_canvas->SetPixel(matrixX, matrixY, pixelColor.red, pixelColor.green, pixelColor.blue);
         }
     }
     offscreen_canvas = matrix->SwapOnVSync(offscreen_canvas);
-    //matrix->Clear();
+}
+
+void applySelectiveSkippedColorInterpolation(GB_Color* fbColor, uint32_t fbIndex, uint32_t fbX, uint32_t fbY){
+    uint32_t rightIndex = fbIndex+1;
+    if(rightIndex < totalPixels){
+        uint32_t rightFbX = (rightIndex) % GAMEBOY_WIDTH;
+        uint32_t rightFbY = (rightIndex) / GAMEBOY_WIDTH;
+        if(rightFbX % skipx == 0 && fbY == rightFbY && rightFbY > 0 && rightFbX > 0){
+            mergeColor(fbColor, &theFrameBuffer[rightIndex]);
+        }
+    }
+
+    uint32_t bottomIndex = fbIndex+GAMEBOY_WIDTH;
+    if(bottomIndex < totalPixels){
+        uint32_t bottomFbX = (bottomIndex) % GAMEBOY_WIDTH;
+        uint32_t bottomFbY = (bottomIndex) / GAMEBOY_WIDTH;
+        if(bottomFbY % skipy == 0 && fbY+1 == bottomFbY && bottomFbY > 0 && bottomFbX > 0){
+            mergeColor(fbColor, &theFrameBuffer[bottomIndex]);
+        }
+    }
+}
+
+void mergeColor(GB_Color* targetColor, GB_Color* sourceColor){
+    targetColor->red = (u8)((sourceColor->red + targetColor->red) * 0.5);
+    targetColor->green = (u8)((sourceColor->green + targetColor->green) * 0.5);
+    targetColor->blue = (u8)((sourceColor->blue + targetColor->blue) * 0.5);
 }
 
 void update(void)
@@ -263,13 +275,15 @@ void update(void)
         theSoundQueue->write(theSampleBufffer, sampleCount);
     }
 
-    SDL_RenderClear(theRenderer);
+    if(!noWindow){
+        SDL_RenderClear(theRenderer);
 
-    SDL_UpdateTexture(theScreen, NULL, theFrameBuffer, GAMEBOY_WIDTH * sizeof(Uint32));
-            
-    SDL_RenderCopy(theRenderer, theScreen, NULL, NULL);
+        SDL_UpdateTexture(theScreen, NULL, theFrameBuffer, GAMEBOY_WIDTH * sizeof(Uint32));
+                
+        SDL_RenderCopy(theRenderer, theScreen, NULL, NULL);
 
-    SDL_RenderPresent(theRenderer);
+        SDL_RenderPresent(theRenderer);
+    }
 
     update_matrix();
 
@@ -312,27 +326,28 @@ void end_matrix(void){
     delete matrix;
 }
 
-void init_sdl(void)
+void init_sdl()
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
     {
         Log("SDL Error Init: %s", SDL_GetError());
     }
-
+ 
     screen_width = 160;
     screen_height = 144;
 
-    SDL_CreateWindowAndRenderer(screen_width, screen_height, 0, &theWindow, &theRenderer);
-    //theWindow = SDL_CreateWindow("Gearboy", 0, 0, 0, 0, 0);
+    if(!noWindow){
+        SDL_CreateWindowAndRenderer(screen_width, screen_height, 0, &theWindow, &theRenderer);
 
-    if (theWindow == NULL)
-    {
-        Log("SDL Error Video: %s", SDL_GetError());
+        if (theWindow == NULL)
+        {
+            Log("SDL Error Video: %s", SDL_GetError());
+        }
+
+        theScreen =  SDL_CreateTexture(theRenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
+
+        SDL_ShowCursor(SDL_DISABLE);
     }
-
-    theScreen =  SDL_CreateTexture(theRenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STATIC, GAMEBOY_WIDTH, GAMEBOY_HEIGHT);
-
-    SDL_ShowCursor(SDL_DISABLE);
 
     game_pad = SDL_JoystickOpen(0);
 
@@ -381,8 +396,10 @@ void init_sdl(void)
     dmg_palette[3].blue = 0x00;     // was 0x16
     dmg_palette[3].alpha = 0xFF;
 
-    SDL_SetRenderDrawColor(theRenderer, dmg_palette[0].red, dmg_palette[0].green, dmg_palette[0].blue, dmg_palette[0].alpha);
-    SDL_RenderClear(theRenderer);
+    if(!noWindow){
+        SDL_SetRenderDrawColor(theRenderer, dmg_palette[0].red, dmg_palette[0].green, dmg_palette[0].blue, dmg_palette[0].alpha);
+        SDL_RenderClear(theRenderer);
+    }
 
     Config cfg;
 
@@ -547,8 +564,6 @@ void end(void)
 
 int main(int argc, char** argv)
 {
-    init(argc, argv);
-
     if (argc < 2)
     {
         end();
@@ -556,25 +571,24 @@ int main(int argc, char** argv)
         printf("options:\n-nosound\n-forcedmg\n");
         return -1;
     }
-
-    bool forcedmg = false;
-
+        bool forcedmg = false;
     if (argc > 2)
     {
         for (int i = 2; i < argc; i++)
         {
-            if (strcmp("-nosound", argv[i]) == 0)
+            if (strcmp("-nosound", argv[i]) == 0){
                 audioEnabled = false;
-            else if (strcmp("-forcedmg", argv[i]) == 0)
+
+            } else if (strcmp("-forcedmg", argv[i]) == 0){
                 forcedmg = true;
-            /*else
+            } else if (strcmp("-nowindow", argv[i]) == 0)
             {
-                end();
-                printf("invalid option: %s\n", argv[i]);
-                return -1;
-            }*/
+                noWindow = true;
+            }
         }
     }
+
+    init(argc, argv);
 
     if (theGearboyCore->LoadROM(argv[1], forcedmg))
     {
