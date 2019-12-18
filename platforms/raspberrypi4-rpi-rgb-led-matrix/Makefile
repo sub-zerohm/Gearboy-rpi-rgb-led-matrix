@@ -2,6 +2,10 @@ GEARBOY_SRC=../../src
 GEARBOY_AUDIO_SRC=../audio-shared
 GEARBOY_RPI_SRC=./
 
+ifeq ($(PREFIX),)
+    PREFIX := /usr/local
+endif
+
 include $(GEARBOY_RPI_SRC)/Makefile.common
 
 CFLAGS+=-Wall -O3 -march=armv8-a+crc -mtune=cortex-a72 -mfpu=neon-fp-armv8 -mfloat-abi=hard
@@ -30,3 +34,9 @@ $(BIN): $(OBJS)
 clean:
 		$(MAKE) -C ./rpi-rgb-led-matrix/lib clean
 		for i in $(OBJS); do (if test -e "$$i"; then ( rm $$i ); fi ); done
+
+install:
+		cp ./gearboymatrix $(PREFIX)/bin/.
+
+uninstall:
+		rm -f $(PREFIX)/bin/gearboymatrix
