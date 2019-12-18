@@ -83,8 +83,8 @@ FrameCanvas* offscreen_canvas;
 uint32_t timer_fps_cap_ticks_start = 0;
 
 uint32_t totalPixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
-uint32_t skipx = 5;
-uint32_t skipy = 8;
+uint32_t skipx = 5; // 160/(160-128)
+uint32_t skipy = 8; // (144/(144-128))-1)
 
 
 void mergeColor(GB_Color* targetColor, GB_Color* sourceColor){
@@ -313,6 +313,10 @@ void init_matrix(int argc, char** argv){
     
     matrix_width = matrix_options.cols * matrix_options.chain_length;
     matrix_height = matrix_options.rows * matrix_options.parallel;
+    
+    skipx = GAMEBOY_WIDTH / (GAMEBOY_WIDTH - matrix_width);
+    skipy = GAMEBOY_HEIGHT / (GAMEBOY_HEIGHT - matrix_height);
+
     char buffer[256];
     snprintf(buffer, sizeof(buffer), "Matrix Width: %d Matrix Height: %d", matrix_width, matrix_height);
     Log(buffer);
@@ -336,8 +340,8 @@ void init_sdl()
         Log("SDL Error Init: %s", SDL_GetError());
     }
  
-    screen_width = 160;
-    screen_height = 144;
+    screen_width = GAMEBOY_WIDTH;
+    screen_height = GAMEBOY_HEIGHT;
 
     if(!noWindow){
         SDL_CreateWindowAndRenderer(screen_width, screen_height, 0, &theWindow, &theRenderer);
