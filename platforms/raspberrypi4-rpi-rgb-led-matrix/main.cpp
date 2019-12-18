@@ -348,6 +348,8 @@ void init_sdl()
 
         SDL_ShowCursor(SDL_DISABLE);
     }
+    
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS,"1"); // Get Joystick Events without a focused window!
 
     game_pad = SDL_JoystickOpen(0);
 
