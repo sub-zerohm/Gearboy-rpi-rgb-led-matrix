@@ -87,6 +87,32 @@ uint32_t skipx = 5;
 uint32_t skipy = 8;
 
 
+void mergeColor(GB_Color* targetColor, GB_Color* sourceColor){
+    targetColor->red = (u8)((sourceColor->red + targetColor->red) * 0.5);
+    targetColor->green = (u8)((sourceColor->green + targetColor->green) * 0.5);
+    targetColor->blue = (u8)((sourceColor->blue + targetColor->blue) * 0.5);
+}
+
+void applySelectiveSkippedColorInterpolation(GB_Color* fbColor, uint32_t fbIndex, uint32_t fbX, uint32_t fbY){
+    uint32_t rightIndex = fbIndex+1;
+    if(rightIndex < totalPixels){
+        uint32_t rightFbX = (rightIndex) % GAMEBOY_WIDTH;
+        uint32_t rightFbY = (rightIndex) / GAMEBOY_WIDTH;
+        if(rightFbX % skipx == 0 && fbY == rightFbY && rightFbY > 0 && rightFbX > 0){
+            mergeColor(fbColor, &theFrameBuffer[rightIndex]);
+        }
+    }
+
+    uint32_t bottomIndex = fbIndex+GAMEBOY_WIDTH;
+    if(bottomIndex < totalPixels){
+        uint32_t bottomFbX = (bottomIndex) % GAMEBOY_WIDTH;
+        uint32_t bottomFbY = (bottomIndex) / GAMEBOY_WIDTH;
+        if(bottomFbY % skipy == 0 && fbY+1 == bottomFbY && bottomFbY > 0 && bottomFbX > 0){
+            mergeColor(fbColor, &theFrameBuffer[bottomIndex]);
+        }
+    }
+}
+
 
 void update_matrix(void){
 
@@ -114,32 +140,6 @@ void update_matrix(void){
         }
     }
     offscreen_canvas = matrix->SwapOnVSync(offscreen_canvas);
-}
-
-void applySelectiveSkippedColorInterpolation(GB_Color* fbColor, uint32_t fbIndex, uint32_t fbX, uint32_t fbY){
-    uint32_t rightIndex = fbIndex+1;
-    if(rightIndex < totalPixels){
-        uint32_t rightFbX = (rightIndex) % GAMEBOY_WIDTH;
-        uint32_t rightFbY = (rightIndex) / GAMEBOY_WIDTH;
-        if(rightFbX % skipx == 0 && fbY == rightFbY && rightFbY > 0 && rightFbX > 0){
-            mergeColor(fbColor, &theFrameBuffer[rightIndex]);
-        }
-    }
-
-    uint32_t bottomIndex = fbIndex+GAMEBOY_WIDTH;
-    if(bottomIndex < totalPixels){
-        uint32_t bottomFbX = (bottomIndex) % GAMEBOY_WIDTH;
-        uint32_t bottomFbY = (bottomIndex) / GAMEBOY_WIDTH;
-        if(bottomFbY % skipy == 0 && fbY+1 == bottomFbY && bottomFbY > 0 && bottomFbX > 0){
-            mergeColor(fbColor, &theFrameBuffer[bottomIndex]);
-        }
-    }
-}
-
-void mergeColor(GB_Color* targetColor, GB_Color* sourceColor){
-    targetColor->red = (u8)((sourceColor->red + targetColor->red) * 0.5);
-    targetColor->green = (u8)((sourceColor->green + targetColor->green) * 0.5);
-    targetColor->blue = (u8)((sourceColor->blue + targetColor->blue) * 0.5);
 }
 
 void update(void)
