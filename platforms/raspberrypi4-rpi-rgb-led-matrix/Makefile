@@ -31,11 +31,14 @@ all: ./rpi-rgb-led-matrix/lib/librgbmatrix.a gearboymatrix sromb.o sromb $(LIB)
 gearboymatrix: $(OBJS)
 		$(CXX) -o $@ -Wl,--whole-archive $(OBJS) $(LDFLAGS) $(INCLUDES) -lstdc++ -Wl,--no-whole-archive -rdynamic
 
-sromb: sromb.o
-		$(CXX) -o $@ -Wl,--whole-archive $(GEARBOY_RPI_SRC)/sromb.o $(LDFLAGS) -lboost_system -lboost_filesystem $(INCLUDES) -lstdc++ -Wl,--no-whole-archive -rdynamic
+sromb: sromb.o glcdfont.o ./rpi-rgb-led-matrix/lib/librgbmatrix.a
+		$(CXX) -o $@ -Wl,--whole-archive $(GEARBOY_RPI_SRC)/sromb.o $(GEARBOY_RPI_SRC)/glcdfont.o $(LDFLAGS) -lboost_system -lboost_filesystem $(INCLUDES) -lstdc++ -Wl,--no-whole-archive -rdynamic
 
 clean:
 		$(MAKE) -C ./rpi-rgb-led-matrix/lib clean
+		rm -f gearboymatrix
+		rm -f sromb.o
+		rm -f sromb
 		for i in $(OBJS); do (if test -e "$$i"; then ( rm $$i ); fi ); done
 
 install:

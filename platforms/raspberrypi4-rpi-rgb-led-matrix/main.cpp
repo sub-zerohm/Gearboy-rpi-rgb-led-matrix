@@ -266,6 +266,10 @@ void update(void)
         }
     }
 
+    if(SDL_JoystickGetButton(game_pad, jg_start) && SDL_JoystickGetButton(game_pad, jg_select)){ // Press start and Select to Exit
+        running = false;
+    }
+
     int sampleCount = 0;
 
     theGearboyCore->RunToVBlank(theFrameBuffer, theSampleBufffer, &sampleCount);

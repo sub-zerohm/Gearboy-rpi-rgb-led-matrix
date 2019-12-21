@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include <assert.h>
 #include <unistd.h>
@@ -13,6 +12,8 @@
 #include <libconfig.h++>
 #include <led-matrix.h>
 #include <boost/filesystem.hpp> 
+#include "sromb.h"
+#include "glcdfont.h"
 
 using namespace std;
 using namespace libconfig;
@@ -28,6 +29,7 @@ bool paused = false;
 static const char *output_file = "gearboy.cfg";
 
 bool audioEnabled = true;
+vector<fs::path> romList;
 
 typedef uint8_t u8;
 
@@ -38,6 +40,11 @@ struct palette_color
     int blue;
     int alpha;
 };
+
+unsigned int argc;
+char** argv;
+
+string romFolder = "./";
 
 palette_color dmg_palette[4];
 #define DEBUG_GEARBOY
@@ -53,6 +60,34 @@ palette_color dmg_palette[4];
 #endif
 #define GAMEBOY_WIDTH 160
 #define GAMEBOY_HEIGHT 144
+
+unsigned int currentIndex = 0;
+
+/*
+ *  From: https://github.com/adafruit/rpi-fb-matrix/blob/master/display-test.cpp
+ *  GNU V2 License: https://github.com/adafruit/rpi-fb-matrix/blob/master/LICENSE
+ */ 
+void printCanvas(Canvas* canvas, int x, int y, const string& message,
+                int r = 255, int g = 255, int b = 255) {
+    // Loop through all the characters and print them starting at the provided
+    // coordinates.
+    for (auto c: message) {
+        // Loop through each column of the character.
+        for (int i=0; i<5; ++i) {
+            unsigned char col = glcdfont[c*5+i];
+            x += 1;
+            // Loop through each row of the column.
+            for (int j=0; j<8; ++j) {
+                // Put a pixel for each 1 in the column byte.
+                if ((col >> j) & 0x01) {
+                    canvas->SetPixel(x, y+j, r, g, b);
+                }
+            }
+        }
+        // Add a column of padding between characters.
+        x += 1;
+    }
+}
 
 inline void Log_func(const char* const msg, ...)
 {
@@ -118,30 +153,15 @@ uint32_t skipy = 8; // (144/(144-128))-1)
 
 
 void update_matrix(void){
-
-    for(uint32_t i=0; i < totalPixels; i++ ){
-        uint32_t fbX = i % GAMEBOY_WIDTH;
-        uint32_t fbY = i / GAMEBOY_WIDTH;
-
-
-        if(fbX > 0 && fbX % skipx == 0 ){ // hard coded value for testing: 128 / 160 = 0.8 = 80% = Render 8 out of 10 pixels = render 4 out of 5, so skip every 5th!
-            continue;
+        offscreen_canvas->Fill(0, 0, 0); // clear
+        printCanvas(offscreen_canvas, 25, 2,  "<GAME SELECT>");
+        unsigned int startValue = ((int)currentIndex - 4 < 0 ? 0 : currentIndex - 4);
+        //Log("Start value is %d",startValue);
+        for (unsigned int i=startValue; i < startValue+10 && i < romList.size(); i++) {
+            char buffer [50];
+            sprintf(buffer, "%s %s", (i==currentIndex? ">": " "), romList[i].c_str());
+            printCanvas(offscreen_canvas, 10, 15+(i-startValue)*10,  buffer);
         }
-        if(fbY > 0 && fbY % skipy == 0){ // hard coded value for testing: 128 / 144 = 0.88888888888 = 88% (skip 12 when 100 -> skip 1 when 8.33333333333)
-            continue;
-        }
-        /*GB_Color pixelColor = theFrameBuffer[i];
-
-        applySelectiveSkippedColorInterpolation(&pixelColor, i, fbX, fbY);
-
-        uint32_t matrixX = fbX - fbX/skipx;
-        uint32_t matrixY = fbY - fbY/skipy;
-        if(matrixY >= matrix_height){
-            break;
-        }else if(matrixX < matrix_width){
-            offscreen_canvas->SetPixel(matrixX, matrixY, pixelColor.red, pixelColor.green, pixelColor.blue);
-        }*/
-    }
     offscreen_canvas = matrix->SwapOnVSync(offscreen_canvas);
 }
 
@@ -160,33 +180,84 @@ void update(void)
             Log("EXITING!!!");
             break;
 
-            /*case SDL_JOYBUTTONDOWN:
+            case SDL_JOYBUTTONDOWN:
             {
-                if (keyevent.jbutton.button == jg_b)
+                if (keyevent.jbutton.button == jg_b){
 
-                else if (keyevent.jbutton.button == jg_a)
+                }
+                else if (keyevent.jbutton.button == jg_a){
+                    runRom(romList[currentIndex].c_str());
+                }
+                else if (keyevent.jbutton.button == jg_select){
 
-                else if (keyevent.jbutton.button == jg_select)
+                }
+                else if (keyevent.jbutton.button == jg_start){
 
-                else if (keyevent.jbutton.button == jg_start)
+                }
  
             }
             break;
 
             case SDL_JOYBUTTONUP:
             {
-                if (keyevent.jbutton.button == jg_b)
-;
-                else if (keyevent.jbutton.button == jg_a)
+                if (keyevent.jbutton.button == jg_b){
 
-                else if (keyevent.jbutton.button == jg_select)
+                }
+                else if (keyevent.jbutton.button == jg_a){
 
-                else if (keyevent.jbutton.button == jg_start)
+                }
+                else if (keyevent.jbutton.button == jg_select){
+
+                }
+                else if (keyevent.jbutton.button == jg_start){
+
+                }
 
             }
             break;
 
-            case SDL_KEYDOWN:
+            
+            case SDL_JOYAXISMOTION:
+            {
+                if(keyevent.jaxis.axis == jg_x_axis)
+                {
+                    int x_motion = keyevent.jaxis.value * (jg_x_axis_invert ? -1 : 1);
+                    if (x_motion < 0){
+
+                    }
+                    else if (x_motion > 0){
+                    
+                    }
+                    else
+                    {
+
+                    }
+                }
+                else if(keyevent.jaxis.axis == jg_y_axis)
+                {
+                    int y_motion = keyevent.jaxis.value * (jg_y_axis_invert ? -1 : 1);
+                    if (y_motion < 0){
+                        if(currentIndex-1 < 0){
+                            currentIndex += romList.size()-1;
+                        }else{
+                            currentIndex -= 1;
+                        }
+                        Log("Current Index %d", currentIndex);
+                    }
+                    else if (y_motion > 0){
+                        currentIndex += 1;
+                        currentIndex %= romList.size();
+                        Log("Current Index %d", currentIndex);
+                    }
+                    else
+                    {
+
+                    }
+                }
+            }
+            break;
+
+            /*case SDL_KEYDOWN:
             {
                 if (keyevent.key.keysym.sym == kc_keypad_left)
                     
@@ -458,6 +529,17 @@ void end(void)
     SDL_DestroyWindow(theWindow);
     SDL_Quit();
 }
+
+void runRom(string romFile){
+    end();
+    char buffer[512];
+    sprintf(buffer, "./gearboymatrix \"%s%s\" -nowindow --led-rows=64 --led-cols=128 --led-chain=1 --led-parallel=2 --led-panel-type=FM6126A --led-brightness=50 --led-show-refresh --led-rgb-sequence=\"GBR\" --led-slowdown-gpio=3", romFolder.c_str(), romFile.c_str());
+    Log("Executing: %s", buffer);
+    system(buffer);
+    usleep(500);
+    init(argc, argv);
+}
+
 // return the filenames of all files that have the specified extension
 // in the specified directory and all subdirectories
 void get_all(const fs::path& root, const std::vector<string> &ext, vector<fs::path>& ret)
@@ -474,7 +556,7 @@ void get_all(const fs::path& root, const std::vector<string> &ext, vector<fs::pa
             string test = (it->path().extension().c_str());
             bool isThere = (std::find(ext.begin(), ext.end(), test) != ext.end());
             if(isThere){
-                ret.push_back(it->path().filename());
+                romList.push_back(it->path().filename());
             }
         }
         ++it;
@@ -482,15 +564,18 @@ void get_all(const fs::path& root, const std::vector<string> &ext, vector<fs::pa
     }
 
 }
-int main(int argc, char** argv)
+
+int main(int pArgc, char** pArgv)
 {
+    argc = pArgc;
+    argv = pArgv;
+
     if (argc < 2)
     {
         printf("usage: %s rom_path [options]\n", argv[0]);
         printf("options:\n-nosound\n-forcedmg\n");
         return -1;
     }
-        bool forcedmg = false;
     if (argc > 2)
     {
         for (unsigned int i = 2; i < argc; i++)
@@ -506,14 +591,15 @@ int main(int argc, char** argv)
     init(argc, argv);
 
     fs::path destination (argv[1]); //Works, no compiler error now
-    vector<fs::path> ret;
+    romFolder = argv[1];
     std::vector<std::string> validEndings {".gb", ".gbc"};
-    get_all(destination, validEndings, ret);
-    printf("roms found: %d \n", ret.size());
-    for (int i=0; i<ret.size(); i++) {
-        printf("Rom:: %s\n", ret[i].c_str());
+    get_all(destination, validEndings, romList);
+    sort(romList.begin(),romList.end());
+    printf("roms found: %d \n", romList.size());
+    for (unsigned int i=0; i<romList.size(); i++) {
+        printf("Rom:: %s\n", romList[i].c_str());
     }
-    running = false;
+    
     while (running)
     {
         update();
