@@ -43,6 +43,8 @@ clean:
 
 install:
 		cp ./gearboymatrix $(PREFIX)/bin/.
+		cp ./sromb $(PREFIX)/bin/.
 
 uninstall:
 		rm -f $(PREFIX)/bin/gearboymatrix
+		rm -f $(PREFIX)/bin/sromb

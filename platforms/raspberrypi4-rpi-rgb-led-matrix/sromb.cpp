@@ -26,20 +26,16 @@ const uint32_t SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS; // (uint32_t) round()
 bool running = true;
 bool paused = false;
 
-static const char *output_file = "gearboy.cfg";
+static const char *output_file = "/home/pi/gearboy.cfg";
 
 bool audioEnabled = true;
 vector<fs::path> romList;
 
-typedef uint8_t u8;
+uint8_t demoMode = 0;
+vector<string> demoRomList;
+uint32_t demoWaitTime = 10000;
+uint32_t demoWaitLastInput = 0;
 
-struct palette_color
-{
-    int red;
-    int green;
-    int blue;
-    int alpha;
-};
 
 unsigned int argc;
 char** argv;
@@ -47,86 +43,8 @@ char** argv;
 string romFolder = "./";
 
 palette_color dmg_palette[4];
-#define DEBUG_GEARBOY
-
-#ifdef DEBUG_GEARBOY
-    #ifdef __ANDROID__
-        #include <android/log.h>
-        #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "GEARBOY", __VA_ARGS__);
-    #endif
-#define Log(msg, ...) (Log_func(msg, ##__VA_ARGS__))
-#else
-#define Log(msg, ...)
-#endif
-#define GAMEBOY_WIDTH 160
-#define GAMEBOY_HEIGHT 144
 
 unsigned int currentIndex = 0;
-
-/*
- *  From: https://github.com/adafruit/rpi-fb-matrix/blob/master/display-test.cpp
- *  GNU V2 License: https://github.com/adafruit/rpi-fb-matrix/blob/master/LICENSE
- */ 
-void printCanvas(Canvas* canvas, int x, int y, const string& message,
-                int r = 255, int g = 255, int b = 255) {
-    // Loop through all the characters and print them starting at the provided
-    // coordinates.
-    for (auto c: message) {
-        // Loop through each column of the character.
-        for (int i=0; i<5; ++i) {
-            unsigned char col = glcdfont[c*5+i];
-            x += 1;
-            // Loop through each row of the column.
-            for (int j=0; j<8; ++j) {
-                // Put a pixel for each 1 in the column byte.
-                if ((col >> j) & 0x01) {
-                    canvas->SetPixel(x, y+j, r, g, b);
-                }
-            }
-        }
-        // Add a column of padding between characters.
-        x += 1;
-    }
-}
-
-inline void Log_func(const char* const msg, ...)
-{
-    static int count = 1;
-    char szBuf[512];
-
-    va_list args;
-    va_start(args, msg);
-    vsprintf(szBuf, msg, args);
-    va_end(args);
-
-    printf("%d: %s\n", count, szBuf);
-
-    count++;
-}
-
-struct GB_Color
-{
-#if defined(__LIBRETRO__)
-    #if defined(IS_LITTLE_ENDIAN)
-    u8 blue;
-    u8 green;
-    u8 red;
-    u8 alpha;
-    #elif defined(IS_BIG_ENDIAN)
-    u8 alpha;
-    u8 red;
-    u8 green;
-    u8 blue;
-    #endif
-#else
-    u8 red;
-    u8 green;
-    u8 blue;
-    u8 alpha;
-#endif
-};
-
-
 
 SDL_Joystick* game_pad = NULL;
 SDL_Keycode kc_keypad_left, kc_keypad_right, kc_keypad_up, kc_keypad_down, kc_keypad_a, kc_keypad_b, kc_keypad_start, kc_keypad_select, kc_emulator_pause, kc_emulator_quit;
@@ -151,16 +69,87 @@ uint32_t totalPixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
 uint32_t skipx = 5; // 160/(160-128)
 uint32_t skipy = 8; // (144/(144-128))-1)
 
+uint8_t scrollIndicator = 0;
+uint32_t tickLastScroll = 0;
+uint32_t scollTickDelay = 250;
+uint8_t maxLetters = 16;
+
+/*
+ *  From: https://github.com/adafruit/rpi-fb-matrix/blob/master/display-test.cpp
+ *  GNU V2 License: https://github.com/adafruit/rpi-fb-matrix/blob/master/LICENSE
+ */ 
+void printTextToCanvas(Canvas* canvas, int x, int y, const string& message,
+                int r = 255, int g = 255, int b = 255) {
+    // Loop through all the characters and print them starting at the provided
+    // coordinates.
+    for (auto c: message) {
+        // Loop through each column of the character.
+        for (int i=0; i<5; ++i) {
+            unsigned char col = glcdfont[c*5+i];
+            x += 1;
+            // Loop through each row of the column.
+            for (int j=0; j<8; ++j) {
+                // Put a pixel for each 1 in the column byte.
+                if ((col >> j) & 0x01) {
+                    canvas->SetPixel(x, y+j, r, g, b);
+                }
+            }
+        }
+        // Add a column of padding between characters.
+        x += 1;
+    }
+}
+
+void fill_area(int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b){
+    for(int i=x; i<=x+width; i++){
+        for(int j=y; j<=y+height; j++){
+            offscreen_canvas->SetPixel(i,j, r,g,b);
+        }
+    }
+}
 
 void update_matrix(void){
-        offscreen_canvas->Fill(0, 0, 0); // clear
-        printCanvas(offscreen_canvas, 25, 2,  "<GAME SELECT>");
+        offscreen_canvas->Fill(dmg_palette[3].red, dmg_palette[3].green, dmg_palette[3].blue); // clear
+        printTextToCanvas(offscreen_canvas, 25, 4,  "<GAME SELECT>");
         unsigned int startValue = ((int)currentIndex - 4 < 0 ? 0 : currentIndex - 4);
         //Log("Start value is %d",startValue);
         for (unsigned int i=startValue; i < startValue+10 && i < romList.size(); i++) {
+            string filename =  romList[i].c_str();
+            bool isGbcRom = false;
+            if (filename.find(".gbc") != std::string::npos) {
+                isGbcRom = true;
+            }
+            size_t lastindex = filename.find_last_of("."); 
+            string cleanName = filename.substr(0, lastindex); 
             char buffer [50];
-            sprintf(buffer, "%s %s", (i==currentIndex? ">": " "), romList[i].c_str());
-            printCanvas(offscreen_canvas, 10, 15+(i-startValue)*10,  buffer);
+            if(i==currentIndex){
+                fill_area(0,14+(i-startValue)*10, GAMEBOY_WIDTH, 8, dmg_palette[2].red, dmg_palette[2].green, dmg_palette[2].blue);
+                
+                if(cleanName.size() > maxLetters){
+                    uint8_t nextScrollIndicator = ((scrollIndicator+1) % ((cleanName.size()-maxLetters)+1));
+                    if(SDL_GetTicks()-tickLastScroll >  ((scrollIndicator==0 || nextScrollIndicator == 0)? scollTickDelay*4 : scollTickDelay)){
+                        //scrollIndicator = ((scrollIndicator+1) % ((cleanName.size()/maxLetters)+1));
+                        scrollIndicator = nextScrollIndicator;
+                        tickLastScroll = SDL_GetTicks();
+                        Log("Scrolling Text  %d",scrollIndicator);
+                    }
+                    //string partial = cleanName.substr(scrollIndicator*maxLetters);
+                    string partial = cleanName.substr(scrollIndicator, std::min((int)maxLetters, (int)(cleanName.size()-scrollIndicator)));
+                    sprintf(buffer, "%s%s", (isGbcRom? "GBC ":"GB  "),partial.c_str());
+                }else{
+                    sprintf(buffer, "%s%s", (isGbcRom? "GBC ":"GB  "),cleanName.c_str());
+                }
+                
+            }else{
+                string partial = cleanName.substr(0, std::min((int)maxLetters, (int)(cleanName.size())));
+                sprintf(buffer, "%s%s", (isGbcRom? "GBC ":"GB  "),partial.c_str());
+            }
+            printTextToCanvas(offscreen_canvas, 2, 15+(i-startValue)*10,  buffer);
+        }
+        if(demoMode == 1){
+            printTextToCanvas(offscreen_canvas, 2, matrix_height-12,  "D"); // Demo Mode (no Audio unless used)
+        }else if(demoMode == 2){
+            printTextToCanvas(offscreen_canvas, 2, matrix_height-12,  "A"); // Attract Mode (Audio during demo)
         }
     offscreen_canvas = matrix->SwapOnVSync(offscreen_canvas);
 }
@@ -170,6 +159,26 @@ void update(void)
     
     timer_fps_cap_ticks_start = SDL_GetTicks();
     SDL_Event keyevent;
+
+    
+    if(SDL_JoystickGetButton(game_pad, 2) && SDL_JoystickGetButton(game_pad, 5) && SDL_JoystickGetButton(game_pad, jg_select) && SDL_JoystickGetButton(game_pad, jg_b)){ // Press start and Select to Exit
+        running = false;
+        end();
+        system("sudo shutdown -hP now");
+        return;
+    }
+
+
+    if(demoMode > 0 && demoWaitLastInput + demoWaitTime < SDL_GetTicks()){
+        if(demoRomList.size() < 1){
+            demoMode = 0;
+            return;
+        }
+        int randomIndex = rand() % demoRomList.size();
+        runRom(string(demoRomList[randomIndex].c_str()), true);
+        demoWaitLastInput = SDL_GetTicks();
+        return;
+    }
 
     while (SDL_PollEvent(&keyevent))
     {
@@ -182,8 +191,9 @@ void update(void)
 
             case SDL_JOYBUTTONDOWN:
             {
+                demoWaitLastInput = SDL_GetTicks();
                 if (keyevent.jbutton.button == jg_b){
-
+                    
                 }
                 else if (keyevent.jbutton.button == jg_a){
                     runRom(romList[currentIndex].c_str());
@@ -192,7 +202,10 @@ void update(void)
 
                 }
                 else if (keyevent.jbutton.button == jg_start){
-
+                    runRom(romList[currentIndex].c_str());
+                }else if (keyevent.jbutton.button == 5){
+                    demoMode = (demoMode+1) % 3;
+                    Log("DemoMode: "+ demoMode);
                 }
  
             }
@@ -219,6 +232,7 @@ void update(void)
             
             case SDL_JOYAXISMOTION:
             {
+                demoWaitLastInput = SDL_GetTicks();
                 if(keyevent.jaxis.axis == jg_x_axis)
                 {
                     int x_motion = keyevent.jaxis.value * (jg_x_axis_invert ? -1 : 1);
@@ -237,17 +251,21 @@ void update(void)
                 {
                     int y_motion = keyevent.jaxis.value * (jg_y_axis_invert ? -1 : 1);
                     if (y_motion < 0){
-                        if(currentIndex-1 < 0){
-                            currentIndex += romList.size()-1;
+                        if(currentIndex == 0){
+                            currentIndex = romList.size()-1;
                         }else{
                             currentIndex -= 1;
                         }
                         Log("Current Index %d", currentIndex);
+                        tickLastScroll = SDL_GetTicks();
+                        scrollIndicator = 0;
                     }
                     else if (y_motion > 0){
                         currentIndex += 1;
                         currentIndex %= romList.size();
                         Log("Current Index %d", currentIndex);
+                        tickLastScroll = SDL_GetTicks();
+                        scrollIndicator = 0;
                     }
                     else
                     {
@@ -256,55 +274,6 @@ void update(void)
                 }
             }
             break;
-
-            /*case SDL_KEYDOWN:
-            {
-                if (keyevent.key.keysym.sym == kc_keypad_left)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_right)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_up)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_down)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_b)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_a)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_select)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_start)
-                    
-
-                if (keyevent.key.keysym.sym == kc_emulator_quit)
-                    running = false;
-                else if (keyevent.key.keysym.sym == kc_emulator_pause)
-                {
-                    
-                }
-            }
-            break;
-
-            case SDL_KEYUP:
-            {
-                if (keyevent.key.keysym.sym == kc_keypad_left)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_right)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_up)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_down)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_b)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_a)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_select)
-                    
-                else if (keyevent.key.keysym.sym == kc_keypad_start)
-                    
-            }
-            break;*/
         }
     }
 
@@ -363,6 +332,27 @@ void end_matrix(void){
     delete matrix;
 }
 
+
+size_t split(const std::string &txt, std::vector<std::string> &strs, char ch)
+{
+    size_t pos = txt.find( ch );
+    size_t initialPos = 0;
+    strs.clear();
+
+    // Decompose statement
+    while( pos != std::string::npos ) {
+        strs.push_back( txt.substr( initialPos, pos - initialPos ) );
+        initialPos = pos + 1;
+
+        pos = txt.find( ch, initialPos );
+    }
+
+    // Add the last one
+    strs.push_back( txt.substr( initialPos, std::min( pos, txt.size() ) - initialPos + 1 ) );
+
+    return strs.size();
+}
+
 void init_sdl()
 {
 
@@ -416,9 +406,9 @@ void init_sdl()
     jg_x_axis = 0;
     jg_y_axis = 1;
 
-    dmg_palette[0].red = 0xEF;
-    dmg_palette[0].green = 0xF3;
-    dmg_palette[0].blue = 0xD5;
+    dmg_palette[0].red = 0xCD;      // was EF
+    dmg_palette[0].green = 0xD6;    // was F3
+    dmg_palette[0].blue = 0xBB;     // was D5
     dmg_palette[0].alpha = 0xFF;
 
     dmg_palette[1].red = 0xA3;
@@ -449,7 +439,18 @@ void init_sdl()
 
         try
         {
+            
             const Setting& root = cfg.getRoot();
+
+            const Setting &sromb = root["Sromb"];
+            string demoRomListString;
+            sromb.lookupValue("demoRomList", demoRomListString);
+            if(demoRomListString.size() > 0){
+                int size = (int)split(demoRomListString, demoRomList, ',' );
+                Log("Found Demo Playlist Size: %d", size);
+            }
+
+
             const Setting &gearboy = root["Gearboy"];
 
             string keypad_left, keypad_right, keypad_up, keypad_down, keypad_a, keypad_b,
@@ -499,6 +500,8 @@ void init_sdl()
 
             kc_emulator_pause = SDL_GetKeyFromName(emulator_pause.c_str());
             kc_emulator_quit = SDL_GetKeyFromName(emulator_quit.c_str());
+
+
         }
         catch(const SettingNotFoundException &nfex)
         {
@@ -524,16 +527,38 @@ void init(int argc, char** argv)
 
 void end(void)
 {
+    if(demoRomList.size() == 0){
+        Config cfg;
+
+        Setting &root = cfg.getRoot();
+        Setting &address = root.add("Sromb", Setting::TypeGroup);
+        address.add("demoRomList", Setting::TypeString) = "";
+
+        try
+        {
+            cfg.writeFile(output_file);
+        }
+        catch(const FileIOException &fioex)
+        {
+            Log("I/O error while writing file: %s", output_file);
+        }
+    }
+
     end_matrix();
     SDL_JoystickClose(game_pad);
     SDL_DestroyWindow(theWindow);
     SDL_Quit();
 }
 
-void runRom(string romFile){
+void runRom(string romFile, bool isAutoStart){
     end();
     char buffer[512];
-    sprintf(buffer, "./gearboymatrix \"%s%s\" -nowindow --led-rows=64 --led-cols=128 --led-chain=1 --led-parallel=2 --led-panel-type=FM6126A --led-brightness=50 --led-show-refresh --led-rgb-sequence=\"GBR\" --led-slowdown-gpio=3", romFolder.c_str(), romFile.c_str());
+    string args = "";
+    for(unsigned int i=0; i < argc; i++){
+
+        args += " "+string(argv[i]);
+    }
+    sprintf(buffer, "gearboymatrix \"%s%s\" %s%s%s", romFolder.c_str(), romFile.c_str(), (isAutoStart? "-demo ":(demoMode != 0?"-autoexit ":"")),(demoMode==1?"-mutedemo ": ""), (args.c_str()));
     Log("Executing: %s", buffer);
     system(buffer);
     usleep(500);
@@ -592,6 +617,7 @@ int main(int pArgc, char** pArgv)
 
     fs::path destination (argv[1]); //Works, no compiler error now
     romFolder = argv[1];
+    printf("roms dir: %s \n", romFolder.c_str());
     std::vector<std::string> validEndings {".gb", ".gbc"};
     get_all(destination, validEndings, romList);
     sort(romList.begin(),romList.end());

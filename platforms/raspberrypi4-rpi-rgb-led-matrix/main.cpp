@@ -44,7 +44,7 @@ const uint32_t SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS; // (uint32_t) round()
 bool running = true;
 bool paused = false;
 
-static const char *output_file = "gearboy.cfg";
+static const char *output_file = "/home/pi/gearboy.cfg";
 
 GearboyCore* theGearboyCore;
 Sound_Queue* theSoundQueue;
@@ -85,6 +85,13 @@ uint32_t timer_fps_cap_ticks_start = 0;
 uint32_t totalPixels = GAMEBOY_WIDTH * GAMEBOY_HEIGHT;
 uint32_t skipx = 5; // 160/(160-128)
 uint32_t skipy = 8; // (144/(144-128))-1)
+
+bool demoMode = false;
+bool demoAudio = true;
+uint32_t demoModeExit = 0;
+uint32_t demoKillTime = 90 * 1000;
+uint32_t demoResetTime = 120 * 1000;
+uint32_t demoWaitLastInput = 0;
 
 
 void mergeColor(GB_Color* targetColor, GB_Color* sourceColor){
@@ -142,10 +149,38 @@ void update_matrix(void){
     offscreen_canvas = matrix->SwapOnVSync(offscreen_canvas);
 }
 
+void cancelDemo(void){
+    if(!demoMode){
+        return;
+    }
+    demoWaitLastInput = SDL_GetTicks();
+    if(demoModeExit > 0){
+        Log("Demo Mode Cancelled.");
+        demoModeExit = 0;
+        if(!demoAudio){
+            audioEnabled = true;
+        }
+    }
+}
 void update(void)
 {
     
-    timer_fps_cap_ticks_start = SDL_GetTicks();
+    uint32_t time = SDL_GetTicks();
+    timer_fps_cap_ticks_start = time;
+
+    if(demoMode){
+        if(demoModeExit == 0 && demoWaitLastInput + demoResetTime < time){
+            Log("No Input for %d ms, will exit in %d", demoResetTime, demoKillTime);
+            audioEnabled = demoAudio;
+            demoModeExit = time + demoKillTime;
+        }
+        if(demoModeExit > 0 && demoModeExit < time){
+            running = false;
+            Log("EXITING DEMO!!!");
+            return;
+        }
+    }
+
     SDL_Event keyevent;
 
     while (SDL_PollEvent(&keyevent))
@@ -159,6 +194,8 @@ void update(void)
 
             case SDL_JOYBUTTONDOWN:
             {
+                cancelDemo();
+
                 if (keyevent.jbutton.button == jg_b)
                     theGearboyCore->KeyPressed(B_Key);
                 else if (keyevent.jbutton.button == jg_a)
@@ -185,6 +222,8 @@ void update(void)
 
             case SDL_JOYAXISMOTION:
             {
+                cancelDemo();
+
                 if(keyevent.jaxis.axis == jg_x_axis)
                 {
                     int x_motion = keyevent.jaxis.value * (jg_x_axis_invert ? -1 : 1);
@@ -387,9 +426,9 @@ void init_sdl()
     jg_x_axis = 0;
     jg_y_axis = 1;
 
-    dmg_palette[0].red = 0xEF;
-    dmg_palette[0].green = 0xF3;
-    dmg_palette[0].blue = 0xD5;
+    dmg_palette[0].red = 0xCD;      // was EF
+    dmg_palette[0].green = 0xD6;    // was F3
+    dmg_palette[0].blue = 0xBB;     // was D5
     dmg_palette[0].alpha = 0xFF;
 
     dmg_palette[1].red = 0xA3;
@@ -517,6 +556,8 @@ void end(void)
     end_matrix();
     Config cfg;
 
+    cfg.readFile(output_file);
+
     Setting &root = cfg.getRoot();
     Setting &address = root.add("Gearboy", Setting::TypeGroup);
 
@@ -595,7 +636,23 @@ int main(int argc, char** argv)
             } else if (strcmp("-nowindow", argv[i]) == 0)
             {
                 noWindow = true;
+            }else if (strcmp("-mutedemo", argv[i]) == 0){
+                demoAudio = false;
+
+            } else if (strcmp("-demo", argv[i]) == 0)
+            {
+                demoMode = true;
+                demoModeExit = SDL_GetTicks() + 75 * 1000;
+                Log("Demo Mode Enabled, Kill Time is: %d", demoModeExit);
+            } else if (strcmp("-autoexit", argv[i]) == 0)
+            {
+                demoMode = true;
+                demoModeExit = 0;
+                Log("Auto ExitMode Enabled, Will kill if Idle is longer than: %d", demoResetTime);
             }
+        }
+        if(demoMode && demoModeExit > 0 && !demoAudio){
+            audioEnabled = false;
         }
     }
 

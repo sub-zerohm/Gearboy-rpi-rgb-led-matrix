@@ -55,6 +55,17 @@ git clone --recursive https://github.com/Dak0r/Gearboy-rpi-rgb-led-matrix.git
 - Gearboy generates a <code>gearboy.cfg</code> configuration file where you can customize keyboard and gamepads. Key codes are from [SDL](https://wiki.libsdl.org/SDL_Keycode).
 
 
+- Exit Emulator with Gamepad: Start + Select
+- Button 5 (Shoulder Button R): Switch between Normal, Demo and Attraction Mode.
+Demo: If no button is pressed for 10 Seconds, Sromb will randomly pick a game and start it with the audio muted. The Game will be exited automatically after 75s. And a new random game will start after 10 seconds. It's possible to cancel the automatic termination of a game, by pressing a button on the gamepad. Audio will then be automatically enabled.
+If at any time after the canceltion no Button is pressed for 120 seconds, the termination of the game will be resceduled in 75s and audio will be muted.
+Attraction Mode: Same as Demo mode, but the game won't be muted.
+
+##### Simple Rom Browser (Sromb)
+
+A simple browser, that allows browsing and starting roms from a given directory on the matrix panel.
+When emulator exists the rom browser automatically restarts.
+
 
 License
 -------
