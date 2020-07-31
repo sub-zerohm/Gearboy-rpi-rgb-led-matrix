@@ -1,30 +1,24 @@
-Gearboy
+Gearboy - for led matrix displays
 =======
-<b>Original Copyright: Gearboy &copy; 2012 by Ignacio Sanchez</b>
 
-----------
 Gearboy is a Nintendo Game Boy / GameBoy Color emulator written in C++ that runs on iOS, Raspberry Pi, Mac, Windows, Linux and RetroArch.
-This forks addds an additional display mode the emulator, that uses the [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix)-library to display the image directly onto an LED Matrix Panel.
+This forks addds an additional display mode the emulator, that uses the [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix)-library to display the image directly on LED Matrix Panels.
 
 See Original Git for Instructions for other platforms / use cases: https://github.com/drhelius/Gearboy 
+
+<p align="center">
+  <img src="https://www.korgel.net/wp-content/uploads/2020/01/IMG_20200102_181205.jpg" width="350" title="Screenshot of the RGB Panel running Tetris]"><br />
+  <strong>Video: https://www.youtube.com/watch?v=phSSKYKx0Ys</strong>
+</p>
+
+
 
 ----------
 
 Features
 --------
-- Highly accurate CPU emulation, passes cpu_instrs.gb from blargg's tests.
-- Accurate instruction and memory timing, passes instr_timing.gb and mem_timing.gb from blargg's tests.
-- Memory Bank Controllers (MBC1, MBC2, MBC3 with RTC, MBC5), ROM + RAM and multicart cartridges.
-- Accurate LCD controller emulation. Background, window and sprites, with correct timings and priorities including mid-scanline timing.
-- Mix frames: Mimics the LCD ghosting effect seen in the original Game Boy.
-- Sound emulation using SDL Audio and [Gb_Snd_Emu library](http://blargg.8bitalley.com/libs/audio.html#Gb_Snd_Emu).
-- Game Boy Color support.
-- Integrated disassembler. It can dump the full disassembled memory to a text file or access it in real time.
-- Saves battery powered RAM cartridges to file.
-- Save states.
-- Compressed rom support (ZIP deflate).
-- Game Genie and GameShark cheat support.
-- Multi platform. Runs on Windows, Linux, Mac OS X, Raspberry Pi, iOS and as a libretro core (RetroArch).
+- Supports most rgb matrix panels, which are supported by  [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix)
+- Scale to match LED Matrix resolution by doublicating pixels or merging pixels if resolution is smaller than original gameboy resolution  (e.g. 128 * 128)
 
 Build Instructions
 ----------------------
@@ -63,8 +57,8 @@ Attraction Mode: Same as Demo mode, but the game won't be muted.
 
 ##### Simple Rom Browser (Sromb)
 
-A simple browser, that allows browsing and starting roms from a given directory on the matrix panel.
-When emulator exists the rom browser automatically restarts.
+This project also comes with a a simple browser, that allows browsing and starting roms from a given directory on the matrix panel. I have this programm in my startup routine, so I can just turn on the pi and then use a gamepad to start any game.
+When emulator exists the rom, the rom browser is automatically restarted.
 
 
 License
