@@ -229,7 +229,7 @@ void update(void)
                     int x_motion = keyevent.jaxis.value * (jg_x_axis_invert ? -1 : 1);
                     if (x_motion < -3200)
                         theGearboyCore->KeyPressed(Left_Key);
-                    else if (x_motion > 32000)
+                    else if (x_motion > 3200)
                         theGearboyCore->KeyPressed(Right_Key);
                     else
                     {
