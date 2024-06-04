@@ -227,9 +227,9 @@ void update(void)
                 if(keyevent.jaxis.axis == jg_x_axis)
                 {
                     int x_motion = keyevent.jaxis.value * (jg_x_axis_invert ? -1 : 1);
-                    if (x_motion < 0)
+                    if (x_motion < -3200)
                         theGearboyCore->KeyPressed(Left_Key);
-                    else if (x_motion > 0)
+                    else if (x_motion > 32000)
                         theGearboyCore->KeyPressed(Right_Key);
                     else
                     {
@@ -240,9 +240,9 @@ void update(void)
                 else if(keyevent.jaxis.axis == jg_y_axis)
                 {
                     int y_motion = keyevent.jaxis.value * (jg_y_axis_invert ? -1 : 1);
-                    if (y_motion < 0)
+                    if (y_motion < -3200)
                         theGearboyCore->KeyPressed(Up_Key);
-                    else if (y_motion > 0)
+                    else if (y_motion > 3200)
                         theGearboyCore->KeyPressed(Down_Key);
                     else
                     {
