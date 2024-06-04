@@ -250,7 +250,7 @@ void update(void)
                 else if(keyevent.jaxis.axis == jg_y_axis)
                 {
                     int y_motion = keyevent.jaxis.value * (jg_y_axis_invert ? -1 : 1);
-                    if (y_motion < 0){
+                    if (y_motion < -3200){
                         if(currentIndex == 0){
                             currentIndex = romList.size()-1;
                         }else{
@@ -260,7 +260,7 @@ void update(void)
                         tickLastScroll = SDL_GetTicks();
                         scrollIndicator = 0;
                     }
-                    else if (y_motion > 0){
+                    else if (y_motion > 3200){
                         currentIndex += 1;
                         currentIndex %= romList.size();
                         Log("Current Index %d", currentIndex);
